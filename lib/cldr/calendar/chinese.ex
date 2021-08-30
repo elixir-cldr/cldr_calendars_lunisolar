@@ -2,11 +2,25 @@ defmodule Cldr.Calendar.Chinese do
   @moduledoc """
   Implementation of the Chinese lunisolar calendar.
 
-  """
-  import Astro.Math, only: [mod: 2, angle: 3, mt: 1, amod: 2, deg: 1, next: 2]
-  import Astro.Time, only: [hours_to_days: 1]
+  In a ‘regular’ Chinese lunisolar calendar, one year
+  is divided into 12 months, one month is corresponding
+  to one full moon.
 
+  Since the cycle of the Moon is not
+  an even number of days, a month in the lunar calendar
+  can vary between 29 and 30 days and a normal year can
+  have 353, 354, or 355 days.
+
+  """
   import Cldr.Macros
+  import Astro.Math, only: [
+    mod: 2,
+    angle: 3,
+    mt: 1,
+    amod: 2,
+    deg: 1,
+    next: 2
+  ]
 
   alias Astro.{Solar, Lunar, Time}
 
@@ -14,8 +28,8 @@ defmodule Cldr.Calendar.Chinese do
   @behaviour Cldr.Calendar
 
   @type year :: -9999..-1 | 1..9999
-  @type month :: 1..12
-  @type day :: 1..31
+  @type month :: 1..13
+  @type day :: 1..30
 
   @days_in_week 7
 
@@ -24,6 +38,12 @@ defmodule Cldr.Calendar.Chinese do
 
   # Number of years in a cycle
   @years_in_cycle 60
+
+  # Encode a leap month by adding
+  # this amount to it, By keeping
+  # the maximum number to 2 digits
+  # we can continue to use Sigil_D
+  @encode_leap_month_addend 50
 
   @doc """
   Defines the CLDR calendar type for this calendar.
@@ -50,20 +70,28 @@ defmodule Cldr.Calendar.Chinese do
     @epoch
   end
 
+  @doc """
+  Since the Chinese calendar is a lunicsolar
+  calendar, a refernce longitude is required
+  in order to calculate sunset and sunrise.
+
+  Prior to 1929, the longitude of Beijing was
+  used. Since 1929, the longitude of the
+  standard China timezone (GMT+8) is used.
+
+  """
+  @beijing_local_offset Astro.Time.hours_to_days(1397 / 180)
+  @china_standard_offset Astro.Time.hours_to_days(8)
+
+  @spec chinese_location(Time.time()) :: {Astro.angle(), Astron.angle(), Atro.meters, Time.hours()}
   def chinese_location(iso_days) do
     {year, _month, _day} = Cldr.Calendar.Gregorian.date_from_iso_days(trunc(iso_days))
 
     if year < 1929 do
-      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), hours_to_days(1397 / 180)}
+      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), @beijing_local_offset}
     else
-      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), hours_to_days(8)}
+      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), @china_standard_offset}
     end
-  end
-
-  def location(iso_days) do
-    {latitude, longitude, altitude, offset} = chinese_location(iso_days)
-    properties = %{offset: offset}
-    %Geo.PointZ{coordinates: {longitude, latitude, altitude}, properties: properties}
   end
 
   @doc """
@@ -72,22 +100,13 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   @impl true
-  @months_with_30_days 1..12
 
-  def valid_date?(_year, month, day) when month in @months_with_30_days and day in 1..30 do
-    true
-  end
-
-  def valid_date?(_year, _month, _day) do
-    false
+  def valid_date?(year, month, day) do
+    month <= months_in_year(year) && day <= days_in_month(year, month)
   end
 
   @doc """
   Calculates the year and era from the given `year`.
-  The ISO calendar has two eras: the current era which
-  starts in year 1 and is defined as era "1". And a
-  second era for those years less than 1 defined as
-  era "0".
 
   """
   @spec year_of_era(year) :: {year, era :: 0..1}
@@ -219,11 +238,13 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   @doc """
-  Returns the number of months in a given `year`.
+  Returns the number of months in a
+  given Chinese `year`.
 
   """
   @impl true
-  def months_in_year(_year) do
+  def months_in_year(year) do
+    if leap_year?(year), do: 13, else: 12
   end
 
   @impl true
@@ -254,13 +275,20 @@ defmodule Cldr.Calendar.Chinese do
   no fixed number of days for a given month
   number.
 
+  The month number is the cardinal month number
+  which means that the numbers do not always
+  increase monotoncally.  For example, leap
+  momths are signifiied by being greater than
+  `#{inspect @encode_leap_month_addend}`.
+
   """
   @spec days_in_month(year, month) :: 29..30
   @impl true
 
-  def days_in_month(_year, _month) do
-    # Return the number of days in the
-    # ordinal month
+  def days_in_month(year, month) do
+    start_of_this_month = date_to_iso_days(year, month, 1)
+    start_of_next_month = new_moon_on_or_after(start_of_this_month + 1)
+    start_of_next_month - start_of_this_month
   end
 
   @doc """
@@ -480,8 +508,8 @@ defmodule Cldr.Calendar.Chinese do
     date_to_iso_days(year, month, day)
   end
 
-  defp decode_month(month) when month > 100 do
-    {month - 100, true}
+  defp decode_month(month) when month > @encode_leap_month_addend do
+    {month - @encode_leap_month_addend, true}
   end
 
   defp decode_month(month) do
@@ -548,7 +576,7 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   defp encode_leap_month(month, true) do
-    month + 100
+    month + @encode_leap_month_addend
   end
 
   defp encode_leap_month(month, false) do
@@ -789,6 +817,12 @@ defmodule Cldr.Calendar.Chinese do
   def day_name_on_or_before(name, date) do
     name_difference = name_difference(name, sexagesimal_name(@day_name_epoch))
     date - mod(date + name_difference, @years_in_cycle)
+  end
+
+  def location(iso_days) do
+    {latitude, longitude, altitude, offset} = chinese_location(iso_days)
+    properties = %{offset: offset}
+    %Geo.PointZ{coordinates: {longitude, latitude, altitude}, properties: properties}
   end
 
   @doc """
