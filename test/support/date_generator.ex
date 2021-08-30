@@ -1,17 +1,12 @@
-defmodule Cldr.Calendar.Coptic.DateGenerator do
+defmodule Cldr.Calendar.Chinese.DateGenerator do
   require ExUnitProperties
 
-  def generate_date do
-    ExUnitProperties.gen all(
-                           year <- StreamData.integer(0001..3000),
-                           month <- StreamData.integer(1..13),
-                           day <-
-                             StreamData.integer(
-                               1..Cldr.Calendar.Coptic.days_in_month(year, month)
-                             )
-                         ) do
-      {:ok, date} = Date.new(year, month, day, Cldr.Calendar.Coptic)
-      date
+  @from Cldr.Calendar.date_to_iso_days(~D[1800-01-01])
+  @to Cldr.Calendar.date_to_iso_days(~D[2100-12-31])
+
+  def generate_iso_days do
+    ExUnitProperties.gen all(iso_days <- StreamData.integer(@from..@to)) do
+      iso_days
     end
   end
 end
