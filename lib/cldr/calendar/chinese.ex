@@ -3,8 +3,12 @@ defmodule Cldr.Calendar.Chinese do
   Implementation of the Chinese lunisolar calendar.
 
   """
-  import Cldr.Math, only: [mod: 2]
+  import Astro.Math, only: [mod: 2, angle: 3, mt: 1, amod: 2, deg: 1, next: 2]
+  import Astro.Time, only: [hours_to_days: 1]
+
   import Cldr.Macros
+
+  alias Astro.{Solar, Lunar, Time}
 
   @behaviour Calendar
   @behaviour Cldr.Calendar
@@ -13,8 +17,13 @@ defmodule Cldr.Calendar.Chinese do
   @type month :: 1..12
   @type day :: 1..31
 
-  @months_in_year 13
   @days_in_week 7
+
+  # Seasons in degrees
+  @winter 270
+
+  # Number of years in a cycle
+  @years_in_cycle 60
 
   @doc """
   Defines the CLDR calendar type for this calendar.
@@ -36,9 +45,31 @@ defmodule Cldr.Calendar.Chinese do
     :month
   end
 
-  @epoch Cldr.Calendar.Julian.date_to_iso_days(284, 8, 29)
+  @epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2636, 2, 15)
   def epoch do
     @epoch
+  end
+
+  defp cycle({cycle, _year, _month, _leap_month, _day}), do: cycle
+  defp year_({_cycle, year, _month, _leap_month?, _day}), do: year
+  defp month({_cycle, _year, month, _leap_month?, _day}), do: month
+  defp day({_cycle, _year, _month, _leap_month?, day}), do: day
+  defp leap_month?({_cycle, _year, _month, leap_month?, _day}), do: leap_month?
+
+  def chinese_location(iso_days) do
+    {year, _month, _day} = Cldr.Calendar.Gregorian.date_from_iso_days(trunc(iso_days))
+
+    if year < 1929 do
+      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), hours_to_days(1397 / 180)}
+    else
+      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), hours_to_days(8)}
+    end
+  end
+
+  def location(iso_days) do
+    {latitude, longitude, altitude, offset} = chinese_location(iso_days)
+    properties = %{offset: offset}
+    %Geo.PointZ{coordinates: {longitude, latitude, altitude}, properties: properties}
   end
 
   @doc """
@@ -48,15 +79,8 @@ defmodule Cldr.Calendar.Chinese do
   """
   @impl true
   @months_with_30_days 1..12
+
   def valid_date?(_year, month, day) when month in @months_with_30_days and day in 1..30 do
-    true
-  end
-
-  def valid_date?(year, 13, 6) do
-    if leap_year?(year), do: true, else: false
-  end
-
-  def valid_date?(_year, 13, day) when day in 1..5 do
     true
   end
 
@@ -167,8 +191,8 @@ defmodule Cldr.Calendar.Chinese do
     @last_day_of_week 5
 
     @spec day_of_week(year, month, day, :default | atom()) ::
-        {Calendar.day_of_week(), first_day_of_week :: non_neg_integer(),
-          last_day_of_week :: non_neg_integer()}
+            {Calendar.day_of_week(), first_day_of_week :: non_neg_integer(),
+             last_day_of_week :: non_neg_integer()}
 
     @impl true
     def day_of_week(year, month, day, :default) do
@@ -196,8 +220,8 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   @impl true
-  def periods_in_year(_year) do
-    @months_in_year
+  def periods_in_year(year) do
+    months_in_year(year)
   end
 
   @doc """
@@ -206,7 +230,6 @@ defmodule Cldr.Calendar.Chinese do
   """
   @impl true
   def months_in_year(_year) do
-    @months_in_year
   end
 
   @impl true
@@ -220,22 +243,29 @@ defmodule Cldr.Calendar.Chinese do
   """
   @impl true
   def days_in_year(year) do
-    if leap_year?(year), do: 366, else: 365
+
   end
 
   @doc """
-  Returns how many days there are in the given year-month.
+  Returns how many days there are in the given year
+  and month.
+
+  Since months are determined by the number of
+  days from one new moon to the next, there is
+  no fixed number of days for a given month
+  number.
 
   """
-  @spec days_in_month(year, month) :: 29..31
+  @spec days_in_month(year, month) :: 29..30
   @impl true
 
-  def days_in_month(year, 13) do
-    if leap_year?(year), do: 6, else: 5
-  end
+  def days_in_month(year, _month) do
+    {_cycle, _year} = Cldr.Math.div_mod(year, @years_in_cycle)
 
-  def days_in_month(_year, month) when month in @months_with_30_days do
-    30
+    # start_of_this_month = chinese_date_to_iso_days(cycle, year, month, ???, 1)
+    # start_of_next_month = chinese_date_to_iso_days(cycle, year, month + 1, ???, 1)
+    #
+    # trunc(start_of_next_month - start_of_this_month)
   end
 
   @doc """
@@ -332,21 +362,134 @@ defmodule Cldr.Calendar.Chinese do
   and then calcualate the difference in
   days to determine if its a leap year.
 
+  Note that `year` is not the chinese year-in-cycle,
+  this is the year since epoch.
+
+  ## Examples
+
+      iex> Cldr.Calendar.Chinese.leap_year? 4717
+      true
+
+      iex> Cldr.Calendar.Chinese.leap_year? 4718
+      false
+
+      iex> Cldr.Calendar.Chinese.leap_year? 4719
+      false
+
+      iex> Cldr.Calendar.Chinese.leap_year? 4720
+      true
+
+      iex> Cldr.Calendar.Chinese.leap_year? 4721
+      false
+
   """
   @spec leap_year?(year) :: boolean()
   @impl true
+
   def leap_year?(year) do
-    mod(year, 4) == 3
+    approx_years_since_epoch = (year - 1) - @years_in_cycle + 1 / 2
+    mid_year = trunc(@epoch + approx_years_since_epoch * Time.mean_tropical_year())
+
+    s1 = winter_solstice_on_or_before(mid_year)
+    s2 = winter_solstice_on_or_before(s1 + 370)
+
+    next_m11 = new_moon_before(1 + s2)
+    m12 = new_moon_on_or_after(1 + s1)
+
+    round((next_m11 - m12) / Time.mean_synodic_month()) == 12
+  end
+
+  @doc """
+  Returns if the given cycle and year is a leap
+  year.
+
+  Note that `year` is the chinese year-in-cycle,
+  not a gregorian year or year since epoch.
+
+  ## Examples
+
+      iex> Cldr.Calendar.Chinese.leap_year? 78, 37
+      true
+
+      iex> Cldr.Calendar.Chinese.leap_year? 78, 38
+      false
+
+      iex> Cldr.Calendar.Chinese.leap_year? 78, 39
+      false
+
+      iex> Cldr.Calendar.Chinese.leap_year? 78, 40
+      true
+
+      iex> Cldr.Calendar.Chinese.leap_year? 78, 41
+      false
+
+  """
+  def leap_year?(cycle, year) do
+    epoch_year = cycle * @years_in_cycle + year
+    leap_year?(epoch_year)
+  end
+
+  @doc """
+  Approximately every three years (7 times in 19 years),
+  a leap month is added to the Chinese calendar.
+
+  To determine when, find the number of new moons between
+  the 11th month in one year and the 11th month in the
+  following year.
+
+  A leap month is inserted if there are 13 New Moons
+  from the start of the 11th month in the first year
+  to the start of the 11th month in the next year.
+
+  The Chinese calendar uses a solar term system
+  that has 12 principal terms to indicate when the Sun's
+  longitudes is a multiple of 30 degrees.
+
+  Unlike all other months, the leap month does not
+  contain a principal term (Zhongqi).
+
+  """
+  def leap_month?(_year, _month) do
+
   end
 
   @doc """
   Returns the number of days since the calendar
   epoch for a given `year-month-day`
 
+  Note that a chinese year is a year within a
+  60 year cycle, not a year since the epoch.
+
+  However to support the `Calendar` protocol
+  we add `cycle * 60` to `year` so that date
+  conversion can occur.  For all formatting
+  purposes, the Chinese year is used and the
+  cycle can also be formatted.
+
   """
-  def date_to_iso_days(year, month, day) do
-    epoch() - 1 + 365 * (year - 1) + :math.floor(year / 4) + 30 * (month - 1) + day
-    |> trunc
+  def date_to_iso_days(_year, _month, _day) do
+  end
+
+  def chinese_date_to_iso_days(cycle, year, month, leap, day) do
+    mid_year =
+      floor(
+        @epoch +
+          ((cycle - 1) * @years_in_cycle + (year - 1) + 1 / 2) *
+            Time.mean_tropical_year()
+      )
+
+    new_year = new_year_on_or_before(mid_year)
+    p = new_moon_on_or_after(new_year + (month - 1) * 29)
+    d = chinese_date_from_iso_days(p)
+
+    prior_new_moon =
+      if month == month(d) && leap == leap_month?(d) do
+        p
+      else
+        new_moon_on_or_after(1 + p)
+      end
+
+    prior_new_moon + day - 1
   end
 
   @doc """
@@ -355,13 +498,268 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   def date_from_iso_days(iso_days) do
-    year = :math.floor((4 * (iso_days - epoch()) + 1463) / 1461)
-    month = :math.floor((iso_days - date_to_iso_days(year, 1, 1)) / 30) + 1
-    day = iso_days + 1 - date_to_iso_days(year, month, 1)
-
-    {trunc(year), trunc(month), trunc(day)}
+    date = chinese_date_from_iso_days(iso_days)
+    {cycle(date) * @years_in_cycle + year_(date), month(date), day(date)}
   end
 
+  def chinese_date_from_iso_days(iso_days) do
+    s1 = winter_solstice_on_or_before(iso_days)
+    s2 = winter_solstice_on_or_before(s1 + 370)
+
+    next_m11 = new_moon_before(1 + s2)
+    m12 = new_moon_on_or_after(1 + s1)
+    leap_year? = round((next_m11 - m12) / Time.mean_synodic_month()) == 12
+
+    m = new_moon_before(1 + iso_days)
+
+    d = if leap_year? && is_prior_leap_month?(m12, m), do: 1, else: 0
+    month = amod(round((m - m12) / Time.mean_synodic_month()) - d, 12) |> trunc
+
+    leap_month? =
+      leap_year? && is_no_major_solar_term?(m) &&
+        !is_prior_leap_month?(m12, Lunar.date_time_new_moon_before(m))
+
+    elapsed_years = floor(1.5 - month / 12 + (iso_days - @epoch) / Time.mean_tropical_year())
+
+    cycle = 1 + floor((elapsed_years - 1 )/ @years_in_cycle)
+    year = amod(elapsed_years, @years_in_cycle)
+    day = 1 + (iso_days - m)
+
+    {cycle, year, month, leap_month?, day, leap_year?}
+  end
+
+  @doc """
+  Return moment (Beijing time) of the first date on or after
+  iso_days, date, (Beijing time) when the solar longitude
+  will be 'lam' degrees.
+  """
+  def solar_longitude_on_or_after(lambda, iso_days) do
+    d = Time.universal_from_standard(iso_days, location(iso_days))
+    t = Solar.solar_longitude_after(lambda, d)
+    Time.standard_from_universal(t, location(t))
+  end
+
+  @doc """
+  Return last Chinese major solar term (zhongqi) before
+  iso_days, date.
+  """
+  def current_major_solar_term(iso_days) do
+    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    d = Time.universal_from_standard(iso_days, offset)
+    s = Solar.solar_longitude(d)
+    amod(2 + floor(trunc(s) / deg(30)), 12)
+  end
+
+  @doc """
+  Return moment (in Beijing) of the first Chinese major
+  solar term (zhongqi) on or after `iso_days`.  The
+  major terms begin when the sun's longitude is a
+  multiple of 30 degrees.
+  """
+  def major_solar_term_on_or_after(iso_days) do
+    s = Solar.solar_longitude(midnight_in_china(iso_days))
+    l = mod(30 * ceil(s / 30), 360)
+    solar_longitude_on_or_after(l, iso_days)
+  end
+
+  @doc """
+  Return last Chinese minor solar term (jieqi) before `iso_days`.
+  """
+  def current_minor_solar_term(iso_days) do
+    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    d = Time.universal_from_standard(iso_days, offset)
+    s = Solar.solar_longitude(d)
+    amod(3 + floor(s - deg(15) / deg(30)), 12)
+  end
+
+  @doc """
+  Return moment (in Beijing) of the first Chinese minor solar
+  term (jieqi) on or after `iso_days`.  The minor terms
+  begin when the sun's longitude is an odd multiple of 15 degrees.
+
+  """
+  def minor_solar_term_on_or_after(iso_days) do
+    s = Solar.solar_longitude(midnight_in_china(iso_days))
+    l = mod(30 * ceil((s - deg(15)) / 30) + deg(15), 360)
+    solar_longitude_on_or_after(l, iso_days)
+  end
+
+  @doc """
+  Return `iso_day` (Beijing) of first new moon before `iso_days`.
+  """
+  def new_moon_before(iso_days) do
+    t = Lunar.date_time_new_moon_before(midnight_in_china(iso_days))
+    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    Time.standard_from_universal(t, offset) |> trunc()
+  end
+
+  @doc """
+  Return `iso_day` (Beijing) of first new moon on or after
+  `iso_days`.
+  """
+  def new_moon_on_or_after(iso_days) do
+    tee = Lunar.date_time_new_moon_at_or_after(midnight_in_china(iso_days))
+    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    Time.standard_from_universal(tee, offset) |> trunc()
+  end
+
+  @doc """
+  Return `true` if Chinese lunar month starting on `iso_days`
+  has no major solar term. This also indicates it is a leap year.
+  """
+  def is_no_major_solar_term?(iso_days) do
+    new_moon = Lunar.date_time_new_moon_at_or_after(iso_days + 1)
+    current_major_solar_term(iso_days) == current_major_solar_term(new_moon)
+  end
+
+  @doc """
+  Return Universal time of (clock) midnight at start of `iso_days`,
+  in China.
+  """
+  def midnight_in_china(iso_days) do
+    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    Time.universal_from_standard(iso_days, offset)
+  end
+
+  @doc """
+  Return iso_days, in the Chinese zone, of winter solstice
+  on or before iso_days.
+  """
+  def winter_solstice_on_or_before(iso_days) do
+    approx = Solar.estimate_prior_solar_longitude(@winter, midnight_in_china(iso_days + 1))
+
+    next(
+      trunc(approx) - 1,
+      fn iso_day -> @winter < Solar.solar_longitude(midnight_in_china(1 + iso_day)) end
+    )
+  end
+
+  @doc """
+  Return `iso_day` of Chinese New Year in sui (period from
+  solstice to solstice) containing `iso_days`.
+
+  """
+  def new_year_in_sui(iso_days) do
+    s1 = winter_solstice_on_or_before(iso_days)
+    s2 = winter_solstice_on_or_before(s1 + 370)
+
+    next_m11 = Lunar.date_time_new_moon_before(1 + s2)
+
+    m12 = Lunar.date_time_new_moon_at_or_after(1 + s1)
+    m13 = Lunar.date_time_new_moon_at_or_after(1 + m12)
+
+    leap_year? = round((next_m11 - m12) / Time.mean_synodic_month()) == 12
+
+    if leap_year? && (is_no_major_solar_term?(m12) || is_no_major_solar_term?(m13)) do
+      Lunar.date_time_new_moon_at_or_after(1 + m13)
+    else
+      m13
+    end
+  end
+
+  @doc """
+  Return `iso_day` of Chinese New Year on or
+  before `iso_days`.
+
+  """
+  def new_year_on_or_before(iso_days) do
+    new_year = new_year_in_sui(iso_days)
+
+    if iso_days >= new_year do
+      new_year
+    else
+      new_year_in_sui(iso_days - 180)
+    end
+  end
+
+  @doc """
+  Return iso_days of Chinese New Year in Gregorian
+  year, g_year.
+
+  """
+  def new_year(gregorian_year) do
+    iso_days = Cldr.Calendar.Gregorian.date_to_iso_days(gregorian_year, 7, 1)
+    new_year_on_or_before(iso_days)
+  end
+
+  @doc """
+  Return True if there is a Chinese leap month on or after lunar
+  month starting on fixed day, m_prime and at or before
+  lunar month starting at iso_days, m.
+  """
+  def is_prior_leap_month?(m_prime, m) do
+    m >= m_prime &&
+      (is_no_major_solar_term?(m) ||
+         is_prior_leap_month?(m_prime, Lunar.date_time_new_moon_before(m)))
+  end
+
+  defp name(stem, branch) when rem(stem, 2) == rem(branch, 2) do
+    {stem, branch}
+  end
+
+  defp stem({stem, _branch}) do
+    stem
+  end
+
+  defp branch({_stem, branch}) do
+    branch
+  end
+
+  @doc """
+  Return the n_th name of the Chinese sexagesimal cycle.
+  """
+  def sexagesimal_name(n) do
+    name(amod(n, 10), amod(n, 12))
+  end
+
+  @doc """
+  Return the number of names from Chinese name c_name1 to the
+  next occurrence of Chinese name c_name2.
+  """
+  def name_difference(c_name1, c_name2) do
+    stem1 = stem(c_name1)
+    stem2 = stem(c_name2)
+
+    branch1 = branch(c_name1)
+    branch2 = branch(c_name2)
+
+    stem_difference = stem2 - stem1
+    branch_difference = branch2 - branch1
+
+    1 + mod(stem_difference - 1 + 25 * (branch_difference - stem_difference), @years_in_cycle)
+  end
+
+  # CHECK THIS was rd(45) -> might need to be +/- 365 since our
+  # epoch is different
+  @month_name_epoch 57
+
+  @doc """
+  Return sexagesimal name for month, month, of Chinese year, year.
+  """
+  def month_name(month, year) do
+    elapsed_months = 12 * (year - 1) + (month - 1)
+    sexagesimal_name(elapsed_months - @month_name_epoch)
+  end
+
+  # CHECK THIS was rd(45) -> might need to be +/- 365 since our
+  # epoch is different
+  @day_name_epoch 45
+
+  @doc """
+  Return Chinese sexagesimal name for date, date.
+  """
+  def day_name(date) do
+    sexagesimal_name(date - @day_name_epoch)
+  end
+
+  @doc """
+  Return iso_days of latest date on or before iso_days, that
+  has Chinese name, name.
+  """
+  def day_name_on_or_before(name, date) do
+    name_difference = name_difference(name, sexagesimal_name(@day_name_epoch))
+    date - mod(date + name_difference, @years_in_cycle)
+  end
 
   @doc """
   Returns the `t:Calendar.iso_days/0` format of the specified date.
@@ -480,4 +878,5 @@ defmodule Cldr.Calendar.Chinese do
   @doc false
   @impl Calendar
   defdelegate valid_time?(hour, minute, second, microsecond), to: Calendar.ISO
+
 end

@@ -61,12 +61,13 @@ defmodule Cldr.Calendars.Chinese.MixProject do
     ]
   end
 
-
   def links do
     %{
       "GitHub" => "https://github.com/elixir-cldr/cldr_calendars_chinese",
-      "Readme" => "https://github.com/elixir-cldr/cldr_calendars_chinese/blob/v#{@version}/README.md",
-      "Changelog" => "https://github.com/elixir-cldr/cldr_calendars_chinese/blob/v#{@version}/CHANGELOG.md"
+      "Readme" =>
+        "https://github.com/elixir-cldr/cldr_calendars_chinese/blob/v#{@version}/README.md",
+      "Changelog" =>
+        "https://github.com/elixir-cldr/cldr_calendars_chinese/blob/v#{@version}/CHANGELOG.md"
     }
   end
 
