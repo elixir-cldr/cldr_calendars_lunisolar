@@ -440,9 +440,7 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   def leap_year?(cycle, year) do
-    mid_year = floor(epoch() +
-                      ((((cycle - 1) * @years_in_cycle) + (year - 1) + 1/2) *
-                       Time.mean_tropical_year()))
+    mid_year = mid_year(cycle, year)
 
     s1 = winter_solstice_on_or_before(mid_year)
     s2 = winter_solstice_on_or_before(s1 + 370)
@@ -503,7 +501,8 @@ defmodule Cldr.Calendar.Chinese do
   """
   def date_to_iso_days(year, month, day) do
     {cycle, year} = cycle_and_year(year)
-    chinese_date_to_iso_days(cycle, year, month, leap_month?(year, month), day)
+    {month, leap_month?} = decode_month(month)
+    chinese_date_to_iso_days(cycle, year, month, leap_month?, day)
   end
 
   def date_to_iso_days({year, month, day}) do
@@ -564,8 +563,11 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   def date_from_iso_days(iso_days) do
-    {cycle, year, month, _leap_month?, day} = chinese_date_from_iso_days(iso_days)
-    {elapsed_years(cycle, year), month, day}
+    {cycle, year, month, leap_month?, day} = chinese_date_from_iso_days(iso_days)
+    month = encode_month(month, leap_month?)
+    elapsed_years = elapsed_years(cycle, year)
+
+    {elapsed_years, month, day}
   end
 
   @doc """
@@ -848,6 +850,24 @@ defmodule Cldr.Calendar.Chinese do
     {latitude, longitude, altitude, offset} = chinese_location(iso_days)
     properties = %{offset: offset}
     %Geo.PointZ{coordinates: {longitude, latitude, altitude}, properties: properties}
+  end
+
+  @leap_month_addend 80
+
+  defp encode_month(month, true = _leap_month?) do
+    month + @leap_month_addend
+  end
+
+  defp encode_month(month, _leap_month?) do
+    month
+  end
+
+  defp decode_month(month) when month > @leap_month_addend do
+    {month -  @leap_month_addend, true}
+  end
+
+  defp decode_month(month) do
+    {month, false}
   end
 
   @doc """
