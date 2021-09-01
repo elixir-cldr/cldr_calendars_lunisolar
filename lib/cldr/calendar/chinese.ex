@@ -121,7 +121,7 @@ defmodule Cldr.Calendar.Chinese do
     {year, 1}
   end
 
-  def year_of_era(year) when year < 0 do
+  def year_of_era(year) when year <= 0 do
     {abs(year), 0}
   end
 
@@ -216,7 +216,7 @@ defmodule Cldr.Calendar.Chinese do
     @impl true
     def day_of_week(year, month, day, :default) do
       days = date_to_iso_days(year, month, day)
-      days_after_saturday = rem(days, 7)
+      days_after_saturday = rem(days, @days_in_week)
       day = Cldr.Math.amod(days_after_saturday + @epoch_day_of_week, @days_in_week)
 
       {day, @epoch_day_of_week, @last_day_of_week}
@@ -227,7 +227,7 @@ defmodule Cldr.Calendar.Chinese do
     @impl true
     def day_of_week(year, month, day) do
       days = date_to_iso_days(year, month, day)
-      days_after_saturday = rem(days, 7)
+      days_after_saturday = rem(days, @days_in_week)
       Cldr.Math.amod(days_after_saturday + @epoch_day_of_week, @days_in_week)
     end
   end
@@ -442,8 +442,8 @@ defmodule Cldr.Calendar.Chinese do
   def leap_year?(cycle, year) do
     mid_year = mid_year(cycle, year)
 
-    s1 = winter_solstice_on_or_before(mid_year)
-    s2 = winter_solstice_on_or_before(s1 + 370)
+    s1 = december_solstice_on_or_before(mid_year)
+    s2 = december_solstice_on_or_before(s1 + 370)
 
     next_m11 = new_moon_before(1 + s2)
     m12 = new_moon_on_or_after(1 + s1)
@@ -473,16 +473,12 @@ defmodule Cldr.Calendar.Chinese do
   contain a principal term (Zhongqi).
 
   """
-  def leap_month?(_year, _month) do
-
+  def leap_month?(_year, month) do
+    month > @encode_leap_month_addend
   end
 
   defp leap_month?({_cycle, _year, _month, leap_month?, _day}) do
     leap_month?
-  end
-
-  defp month({_cycle, _year, month, _leap_month?, _day}) do
-    month
   end
 
   @doc """
@@ -530,22 +526,24 @@ defmodule Cldr.Calendar.Chinese do
     chinese_date_to_iso_days(cycle, year, month, leap_month?, day)
   end
 
-  def mid_year(cycle, year) do
+  defp month({_cycle, _year, month, _leap_month?, _day}) do
+    month
+  end
+
+  defp mid_year(cycle, year) do
     floor(epoch() +
       ((((cycle - 1) * @years_in_cycle) + (year - 1) + 1/2) * Time.mean_tropical_year()))
   end
 
-  @doc false
-  def elapsed_years(cycle, year) do
+  defp elapsed_years(cycle, year) do
     ((cycle - 1) * @years_in_cycle) + year
   end
 
-  def elapsed_years({cycle, year}) do
+  defp elapsed_years({cycle, year}) do
     elapsed_years(cycle, year)
   end
 
-  @doc false
-  def cycle_and_year(elapsed_years) do
+  defp cycle_and_year(elapsed_years) do
     cycle = 1 + floor((elapsed_years - 1) / @years_in_cycle)
     year = amod(elapsed_years, @years_in_cycle)
 
@@ -582,8 +580,8 @@ defmodule Cldr.Calendar.Chinese do
   """
 
   def chinese_date_from_iso_days(iso_days) do
-    s1 = winter_solstice_on_or_before(iso_days)
-    s2 = winter_solstice_on_or_before(s1 + 370)
+    s1 = december_solstice_on_or_before(iso_days)
+    s2 = december_solstice_on_or_before(s1 + 370)
 
     next_m11 = new_moon_before(1 + s2)
     m12 = new_moon_on_or_after(1 + s1)
@@ -710,7 +708,7 @@ defmodule Cldr.Calendar.Chinese do
   Return iso_days, in the Chinese zone, of winter solstice
   on or before iso_days.
   """
-  def winter_solstice_on_or_before(iso_days) do
+  def december_solstice_on_or_before(iso_days) do
     approx = Solar.estimate_prior_solar_longitude(@winter, midnight_in_china(iso_days + 1))
 
     next(
@@ -725,8 +723,8 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   def new_year_in_sui(iso_days) do
-    s1 = winter_solstice_on_or_before(iso_days)
-    s2 = winter_solstice_on_or_before(s1 + 370)
+    s1 = december_solstice_on_or_before(iso_days)
+    s2 = december_solstice_on_or_before(s1 + 370)
 
     next_m11 = new_moon_before(1 + s2)
 
@@ -852,18 +850,16 @@ defmodule Cldr.Calendar.Chinese do
     %Geo.PointZ{coordinates: {longitude, latitude, altitude}, properties: properties}
   end
 
-  @leap_month_addend 80
-
   defp encode_month(month, true = _leap_month?) do
-    month + @leap_month_addend
+    month + @encode_leap_month_addend
   end
 
   defp encode_month(month, _leap_month?) do
     month
   end
 
-  defp decode_month(month) when month > @leap_month_addend do
-    {month -  @leap_month_addend, true}
+  defp decode_month(month) when month > @encode_leap_month_addend do
+    {month -  @encode_leap_month_addend, true}
   end
 
   defp decode_month(month) do
