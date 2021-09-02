@@ -39,6 +39,10 @@ defmodule Cldr.Calendar.Chinese do
   # Number of years in a cycle
   @years_in_cycle 60
 
+  # Calculating solar events in
+  # the following year (in days)
+  @one_solar_year_later 370
+
   # Encode a leap month by adding
   # this amount to it, By keeping
   # the maximum number to 2 digits
@@ -439,18 +443,15 @@ defmodule Cldr.Calendar.Chinese do
       false
 
   """
+
+  @max_year_length 385
+
   def leap_year?(cycle, year) do
-    mid_year = mid_year(cycle, year)
+    new_year = alt_chinese_date_to_iso_days(cycle, year, 1, 1)
+    next_year = new_year_on_or_before(new_year + @max_year_length)
 
-    s1 = december_solstice_on_or_before(mid_year)
-    s2 = december_solstice_on_or_before(s1 + 370)
-
-    next_m11 = new_moon_before(1 + s2)
-    m12 = new_moon_on_or_after(1 + s1)
-
-    # 12 full lunar months means 13 new moons
-    round((next_m11 - m12) / Time.mean_synodic_month()) == 12
-
+    # IO.inspect {cycle, year, next_year - new_year}
+    round((next_year - new_year) / Time.mean_synodic_month()) == 13
   end
 
   @doc """
@@ -479,6 +480,16 @@ defmodule Cldr.Calendar.Chinese do
 
   defp leap_month?({_cycle, _year, _month, leap_month?, _day}) do
     leap_month?
+  end
+
+  def alt_leap_month?(year, month) do
+    {cycle, year} = cycle_and_year(year)
+    alt_leap_month?(cycle, year, month)
+  end
+
+  def alt_leap_month?(cycle, year, month) do
+    start_of_month = alt_chinese_date_to_iso_days(cycle, year, month, 1)
+    leap_year?(cycle, year) and is_no_major_solar_term?(start_of_month)
   end
 
   @doc """
@@ -583,14 +594,13 @@ defmodule Cldr.Calendar.Chinese do
 
   def chinese_date_from_iso_days(iso_days) do
     s1 = december_solstice_on_or_before(iso_days)
-    s2 = december_solstice_on_or_before(s1 + 370)
+    s2 = december_solstice_on_or_before(s1 + @one_solar_year_later)
 
     next_m11 = new_moon_before(1 + s2)
     m12 = new_moon_on_or_after(1 + s1)
 
     # 12 full lunar months means 13 new moons
     leap_year? = round((next_m11 - m12) / Time.mean_synodic_month()) == 12
-    # IO.inspect leap_year?, label: "Leap year?"
 
     m = new_moon_before(1 + iso_days)
 
