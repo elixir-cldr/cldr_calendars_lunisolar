@@ -6,6 +6,10 @@
 
 * Review and update readme
 
+* Update Inspect protocol output
+
+* Update Sigil_D and Sigil_U parsers
+
 * Generalise `location` so we can also deliver Japanese, Korean and Vietnamese calendars. Pass a location function as a parameter.
 
 * `plus` for `:months` needs to be implemented
@@ -19,6 +23,9 @@
 * Tests for `month/2`. This needs some thought given the encoding of leap months.
 
 * Test stem and branch functions (needed for localisation)
+
+* Work on calendar formatting
+
 
 
 

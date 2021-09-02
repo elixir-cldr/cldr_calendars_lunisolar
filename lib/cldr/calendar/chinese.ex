@@ -66,12 +66,12 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   # This epoch is the first use of the sexagesimal cycle
+  # It is also the epoch used by CLDR
   @epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2636, 2, 15)
 
   # Alternative epoch starting from the reigh of Emporer Huangdi
   # This epoch seems more common in popular press
   # @alt_epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2696, 2, 15)
-
   def epoch do
     @epoch
   end
@@ -505,6 +505,9 @@ defmodule Cldr.Calendar.Chinese do
     date_to_iso_days(year, month, day)
   end
 
+  # Original version in which the month number doesnt change for
+  # a leap month (but the leap_month? flag is set for the second
+  # month with the same number)
   def chinese_date_to_iso_days(cycle, year, month, leap_month?, day) do
     mid_year = mid_year(cycle, year)
     new_year = new_year_on_or_before(mid_year)
@@ -526,28 +529,27 @@ defmodule Cldr.Calendar.Chinese do
     chinese_date_to_iso_days(cycle, year, month, leap_month?, day)
   end
 
-  defp month({_cycle, _year, month, _leap_month?, _day}) do
-    month
+  # Version which uses ordinal numbers in a monotonic sequence 1..12
+  # or 1..13 for month numbers. Leap months are not marked but can
+  # be later calculated.
+
+  # This makes clear how simple the calendar is - just a sequence of
+  # months aligned to new moons. The complication is only determining
+  # the start of the year.
+
+  def alt_chinese_date_to_iso_days(cycle, year, month, day) do
+    new_year =
+      cycle
+      |> mid_year(year)
+      |> new_year_on_or_before()
+
+    prior_new_moon = new_moon_on_or_after(new_year + (month - 1) * 29)
+
+    prior_new_moon + day - 1
   end
 
-  defp mid_year(cycle, year) do
-    floor(epoch() +
-      ((((cycle - 1) * @years_in_cycle) + (year - 1) + 1/2) * Time.mean_tropical_year()))
-  end
-
-  defp elapsed_years(cycle, year) do
-    ((cycle - 1) * @years_in_cycle) + year
-  end
-
-  defp elapsed_years({cycle, year}) do
-    elapsed_years(cycle, year)
-  end
-
-  defp cycle_and_year(elapsed_years) do
-    cycle = 1 + floor((elapsed_years - 1) / @years_in_cycle)
-    year = amod(elapsed_years, @years_in_cycle)
-
-    {cycle, year}
+  def alt_chinese_date_to_iso_days({cycle, year, month, day}) do
+    alt_chinese_date_to_iso_days(cycle, year, month, day)
   end
 
   @doc """
@@ -588,6 +590,7 @@ defmodule Cldr.Calendar.Chinese do
 
     # 12 full lunar months means 13 new moons
     leap_year? = round((next_m11 - m12) / Time.mean_synodic_month()) == 12
+    # IO.inspect leap_year?, label: "Leap year?"
 
     m = new_moon_before(1 + iso_days)
 
@@ -599,13 +602,54 @@ defmodule Cldr.Calendar.Chinese do
         !is_prior_leap_month?(m12, new_moon_before(m))
 
     elapsed_years = floor(1.5 - (month / 12) + ((iso_days - epoch()) / Time.mean_tropical_year()))
+    {cycle, year} = cycle_and_year(elapsed_years)
 
-    # {cycle, year} = cycle_and_year(elapsed_years)
-    cycle = 1 + floor((elapsed_years - 1) / 60)
-    year = amod(elapsed_years, 60)
     day = 1 + (iso_days - m)
 
     {cycle, year, month, leap_month?, day}
+  end
+
+  # Here we return months that monotonically increase
+  # from 1 to 12 (or 13 in a leap year).
+
+  def alt_chinese_date_from_iso_days(iso_days) do
+    new_year = new_year_on_or_before(iso_days)
+
+    elapsed_years = ((new_year - epoch()) / Time.mean_tropical_year()) + 1 |> round()
+    {cycle, year} = cycle_and_year(elapsed_years)
+
+    start_of_month = new_moon_before(iso_days + 1)
+    month = ((start_of_month - new_year) / Time.mean_synodic_month()) + 1 |> round()
+
+    day = (iso_days - start_of_month + 1) |> round()
+
+    {cycle, year, month, day}
+  end
+
+  defp month({_cycle, _year, month, _leap_month?, _day}) do
+    month
+  end
+
+  defp mid_year(cycle, year) do
+    floor(epoch() +
+      ((((cycle - 1) * @years_in_cycle) + (year - 1) + 1/2) * Time.mean_tropical_year()))
+  end
+
+  @doc false
+  def elapsed_years(cycle, year) do
+    ((cycle - 1) * @years_in_cycle) + year
+  end
+
+  def elapsed_years({cycle, year}) do
+    elapsed_years(cycle, year)
+  end
+
+  @doc false
+  def cycle_and_year(elapsed_years) do
+    cycle = 1 + floor((elapsed_years - 1) / @years_in_cycle)
+    year = amod(elapsed_years, @years_in_cycle)
+
+    {cycle, year}
   end
 
   @doc """
@@ -667,23 +711,43 @@ defmodule Cldr.Calendar.Chinese do
 
   @doc """
   Return `iso_day` (Beijing) of first new moon before `iso_days`.
+
+  ## Example
+
+      iex> Cldr.Calendar.Chinese.new_moon_before(-962734 + 1)
+      -962734
+
   """
   def new_moon_before(iso_days) do
-    t = Lunar.date_time_new_moon_before(midnight_in_china(iso_days))
-    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    new_moon =
+      iso_days
+      |> midnight_in_china()
+      |> Lunar.date_time_new_moon_before()
 
-    Time.standard_from_universal(t, offset) |> trunc()
+    {_lat, _lng, _alt, offset} = chinese_location(new_moon)
+
+    Time.standard_from_universal(new_moon, offset) |> floor()
   end
 
   @doc """
   Return `iso_day` (Beijing) of first new moon on or after
   `iso_days`.
+
+  ## Example
+
+      iex> Cldr.Calendar.Chinese.new_moon_on_or_after(-962734)
+      -962734
+
   """
   def new_moon_on_or_after(iso_days) do
-    t = Lunar.date_time_new_moon_at_or_after(midnight_in_china(iso_days))
-    {_lat, _lng, _alt, offset} = chinese_location(iso_days)
+    new_moon =
+      iso_days
+      |> midnight_in_china()
+      |> Lunar.date_time_new_moon_at_or_after()
 
-    Time.standard_from_universal(t, offset) |> trunc()
+    {_lat, _lng, _alt, offset} = chinese_location(new_moon)
+
+    Time.standard_from_universal(new_moon, offset) |> floor()
   end
 
   @doc """
@@ -712,7 +776,7 @@ defmodule Cldr.Calendar.Chinese do
     approx = Solar.estimate_prior_solar_longitude(@winter, midnight_in_china(iso_days + 1))
 
     next(
-      trunc(approx) - 1,
+      floor(approx) - 1,
       fn iso_day -> @winter < Solar.solar_longitude(midnight_in_china(1 + iso_day)) end
     )
   end
