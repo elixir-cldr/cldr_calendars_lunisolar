@@ -388,7 +388,27 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   @doc """
-  Returns if the given year is a leap year.
+  Returns if the given year is a leap
+  year.
+
+  Leap years have 13 months. To determine if a year
+  is a leap year, calculate the number of new moons
+  between the 11th month in one year (i.e., the month
+  containing the Winter Solstice) and the 11th month
+  in the following year.
+
+  If there are 13 new moons from the start of the 11th
+  month in the first year to the start of the 11th
+  month in the second year, a leap month must be inserted.
+
+  In leap years, at least one month does not contain a
+  Principal Term. The first such month is the leap month.
+
+  The additional complexity is that a leap year is
+  calculated for the solar year, but the calendar
+  is managed in lunar years and months. Therefore when
+  a leap year is detected, the leap month could be in
+  the current lunar year or the next lunar year.
 
   ## Examples
 
@@ -416,14 +436,33 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   def leap_year?(year) do
-    year
-    |> cycle_and_year()
-    |> leap_year?()
+    start_of_this_year = alt_date_to_iso_days(year, 1, 1)
+    start_of_next_year = alt_date_to_iso_days(year + 1, 1, 1)
+    floor((start_of_next_year - start_of_this_year) / Time.mean_synodic_month) == 13
   end
 
   @doc """
   Returns if the given cycle and year is a leap
   year.
+
+  Leap years have 13 months. To determine if a year
+  is a leap year, calculate the number of new moons
+  between the 11th month in one year (i.e., the month
+  containing the Winter Solstice) and the 11th month
+  in the following year.
+
+  If there are 13 new moons from the start of the 11th
+  month in the first year to the start of the 11th
+  month in the second year, a leap month must be inserted.
+
+  In leap years, at least one month does not contain a
+  Principal Term. The first such month is the leap month.
+
+  The additional complexity is that a leap year is
+  calculated for the solar year, but the calendar
+  is managed in lunar years and months. Therefore when
+  a leap year is detected, the leap month could be in
+  the current lunar year or the next lunar year.
 
   ## Examples
 
@@ -443,15 +482,23 @@ defmodule Cldr.Calendar.Chinese do
       false
 
   """
-
-  @max_year_length 385
-
   def leap_year?(cycle, year) do
-    new_year = alt_chinese_date_to_iso_days(cycle, year, 1, 1)
-    next_year = new_year_on_or_before(new_year + @max_year_length)
+    cycle
+    |> elapsed_years(year)
+    |> leap_year?()
+  end
 
-    # IO.inspect {cycle, year, next_year - new_year}
-    round((next_year - new_year) / Time.mean_synodic_month()) == 13
+  def leap_solar_year?(year, month, day) do
+    iso_days = alt_date_to_iso_days(year, month, day)
+
+    s1 = december_solstice_on_or_before(iso_days)
+    s2 = december_solstice_on_or_before(s1 + @one_solar_year_later)
+
+    next_m11 = new_moon_before(1 + s2)
+    m12 = new_moon_on_or_after(1 + s1)
+
+    # 12 full lunar months means 13 new moons
+    round((next_m11 - m12) / Time.mean_synodic_month()) == 12
   end
 
   @doc """
@@ -547,6 +594,14 @@ defmodule Cldr.Calendar.Chinese do
   # This makes clear how simple the calendar is - just a sequence of
   # months aligned to new moons. The complication is only determining
   # the start of the year.
+  def alt_date_to_iso_days(year, month, day) do
+    {cycle, year} = cycle_and_year(year)
+    alt_chinese_date_to_iso_days(cycle, year, month, day)
+  end
+
+  def alt_date_to_iso_days({year, month, day}) do
+    alt_date_to_iso_days(year, month, day)
+  end
 
   def alt_chinese_date_to_iso_days(cycle, year, month, day) do
     new_year =
@@ -611,6 +666,10 @@ defmodule Cldr.Calendar.Chinese do
       leap_year? && is_no_major_solar_term?(m) &&
         !is_prior_leap_month?(m12, new_moon_before(m))
 
+    # IO.inspect leap_year?, label: "Leap year?"
+    # IO.inspect is_no_major_solar_term?(m), label: "No major solar term?"
+    # IO.inspect is_prior_leap_month?(m12, new_moon_before(m)), label: "Is prior leap month?"
+
     elapsed_years = floor(1.5 - (month / 12) + ((iso_days - epoch()) / Time.mean_tropical_year()))
     {cycle, year} = cycle_and_year(elapsed_years)
 
@@ -621,6 +680,12 @@ defmodule Cldr.Calendar.Chinese do
 
   # Here we return months that monotonically increase
   # from 1 to 12 (or 13 in a leap year).
+  def alt_date_from_iso_days(iso_days) do
+    {cycle, year, month, day} = alt_chinese_date_from_iso_days(iso_days)
+    elapsed_years = elapsed_years(cycle, year)
+
+    {elapsed_years, month, day}
+  end
 
   def alt_chinese_date_from_iso_days(iso_days) do
     new_year = new_year_on_or_before(iso_days)
