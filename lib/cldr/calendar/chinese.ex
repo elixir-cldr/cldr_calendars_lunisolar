@@ -594,7 +594,7 @@ defmodule Cldr.Calendar.Chinese do
     new_year = new_year_on_or_before(start_of_month)
 
     leap_solar_year?(start_of_month) &&
-      is_no_major_solar_term?(start_of_month) &&
+      no_major_solar_term?(start_of_month) &&
       !is_prior_leap_month?(start_of_month, new_year)
   end
 
@@ -708,28 +708,12 @@ defmodule Cldr.Calendar.Chinese do
   """
 
   def chinese_date_from_iso_days(iso_days) do
-    s1 = december_solstice_on_or_before(iso_days)
-    s2 = december_solstice_on_or_before(s1 + @one_solar_year_later)
-
-    next_m11 = new_moon_before(1 + s2)
-    m12 = new_moon_on_or_after(1 + s1)
-
-    # 12 full lunar months means 13 new moons
-    leap_year? = round((next_m11 - m12) / Time.mean_synodic_month()) == 12
-
-    m = new_moon_before(1 + iso_days)
-
-    d = if leap_year? && is_prior_leap_month?(m12, m), do: 1, else: 0
-    month = amod(round((m - m12) / Time.mean_synodic_month()) - d, 12) |> trunc
-
-    leap_month? =
-      leap_year? && is_no_major_solar_term?(m) &&
-        !is_prior_leap_month?(m12, new_moon_before(m))
+    {month, start_of_month, leap_month?} = month_and_leap(iso_days)
 
     elapsed_years = floor(1.5 - (month / 12) + ((iso_days - epoch()) / Time.mean_tropical_year()))
     {cycle, year} = cycle_and_year(elapsed_years)
 
-    day = 1 + (iso_days - m)
+    day = (iso_days - start_of_month) + 1
 
     {cycle, year, month, leap_month?, day}
   end
@@ -761,6 +745,68 @@ defmodule Cldr.Calendar.Chinese do
 
     {cycle, year} = cycle_and_year(elapsed_years)
     {cycle, year, month, day}
+  end
+
+  @doc """
+  Returns `{month, start_of_month, leap_month?}` for a given
+  date in `iso_days`.
+
+  """
+  @calendar_months_in_year 12
+
+  def month_and_leap(iso_days) do
+    {prior_month_12, next_month_11} =
+      lunisolar_year(iso_days)
+
+    leap_sui_year? =
+      leap_sui_year?(prior_month_12, next_month_11)
+
+    start_of_month =
+      new_moon_before(1 + iso_days)
+
+    month =
+      start_of_month
+      |> lunar_months_between(prior_month_12)
+      |> offset_if_prior_leap_month(leap_sui_year?, prior_month_12, start_of_month)
+      |> amod(@calendar_months_in_year)
+      |> trunc()
+
+    leap_month? =
+      leap_month?(leap_sui_year?, start_of_month, prior_month_12)
+
+    {month, start_of_month, leap_month?}
+  end
+
+  defp lunisolar_year(iso_days) do
+    prior_solstice = december_solstice_on_or_before(iso_days)
+    prior_month_12 = new_moon_on_or_after(1 + prior_solstice)
+
+    next_solstice = december_solstice_on_or_before(prior_solstice + @one_solar_year_later)
+    next_month_11 = new_moon_before(1 + next_solstice)
+
+    {prior_month_12, next_month_11}
+  end
+
+  defp leap_month?(leap_sui_year?, iso_days, start_of_sui_year) do
+    leap_sui_year? && no_major_solar_term?(iso_days) &&
+      !is_prior_leap_month?(start_of_sui_year, new_moon_before(iso_days))
+  end
+
+  defp leap_sui_year?(start_of_year, end_of_year) do
+    # 12 full lunar months means 13 new moons
+    round((end_of_year - start_of_year) / Time.mean_synodic_month()) == @calendar_months_in_year
+  end
+
+  defp offset_if_prior_leap_month(months, true = _leap_sui_year?, last_month_12, start_of_month) do
+    if is_prior_leap_month?(last_month_12, start_of_month), do: months - 1, else: months
+  end
+
+  defp offset_if_prior_leap_month(months, _leap_sui_year?, _last_month_12, _start_of_month) do
+    months
+  end
+
+  def lunar_months_between(from_iso_days, to_iso_days) do
+    round((from_iso_days - to_iso_days) / Time.mean_synodic_month())
   end
 
   defp month({_cycle, _year, month, _leap_month?, _day}) do
@@ -895,7 +941,7 @@ defmodule Cldr.Calendar.Chinese do
   has no major solar term.
 
   """
-  def is_no_major_solar_term?(iso_days) do
+  def no_major_solar_term?(iso_days) do
     new_moon = new_moon_on_or_after(iso_days + 1)
     current_major_solar_term(iso_days) == current_major_solar_term(new_moon)
   end
@@ -927,20 +973,19 @@ defmodule Cldr.Calendar.Chinese do
 
   """
   def new_year_in_sui(iso_days) do
-    s1 = december_solstice_on_or_before(iso_days)
-    s2 = december_solstice_on_or_before(s1 + @one_solar_year_later)
+    {prior_month_12, next_month_11} = lunisolar_year(iso_days)
+    prior_month_13 = new_moon_on_or_after(1 + prior_month_12)
 
-    next_m11 = new_moon_before(1 + s2)
+    leap_year? =
+      leap_sui_year?(prior_month_12, next_month_11)
 
-    m12 = new_moon_on_or_after(1 + s1)
-    m13 = new_moon_on_or_after(1 + m12)
+    no_prior_major_solar_term? =
+      no_major_solar_term?(prior_month_12) || no_major_solar_term?(prior_month_13)
 
-    leap_year? = round((next_m11 - m12) / Time.mean_synodic_month()) == 12
-
-    if leap_year? && (is_no_major_solar_term?(m12) || is_no_major_solar_term?(m13)) do
-      new_moon_on_or_after(1 + m13)
+    if leap_year? && no_prior_major_solar_term? do
+      new_moon_on_or_after(1 + prior_month_13)
     else
-      m13
+      prior_month_13
     end
   end
 
@@ -961,10 +1006,10 @@ defmodule Cldr.Calendar.Chinese do
 
   @doc """
   Return iso_days of Chinese New Year in Gregorian
-  year, g_year.
+  year.
 
   """
-  def new_year(gregorian_year) do
+  def chinese_new_year_for_gregorian_year(gregorian_year) do
     iso_days = Cldr.Calendar.Gregorian.date_to_iso_days(gregorian_year, 7, 1)
     new_year_on_or_before(iso_days)
   end
@@ -977,7 +1022,7 @@ defmodule Cldr.Calendar.Chinese do
   """
   def is_prior_leap_month?(m_prime, m) do
     m >= m_prime &&
-      (is_no_major_solar_term?(m) ||
+      (no_major_solar_term?(m) ||
          is_prior_leap_month?(m_prime, new_moon_before(m)))
   end
 
