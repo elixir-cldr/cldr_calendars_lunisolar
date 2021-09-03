@@ -488,9 +488,7 @@ defmodule Cldr.Calendar.Chinese do
     |> leap_year?()
   end
 
-  def leap_solar_year?(year, month, day) do
-    iso_days = alt_date_to_iso_days(year, month, day)
-
+  def leap_solar_year?(iso_days) do
     s1 = december_solstice_on_or_before(iso_days)
     s2 = december_solstice_on_or_before(s1 + @one_solar_year_later)
 
@@ -499,6 +497,11 @@ defmodule Cldr.Calendar.Chinese do
 
     # 12 full lunar months means 13 new moons
     round((next_m11 - m12) / Time.mean_synodic_month()) == 12
+  end
+
+  def leap_solar_year?(year, month, day) do
+    iso_days = alt_date_to_iso_days(year, month, day)
+    leap_solar_year?(iso_days)
   end
 
   @doc """
@@ -537,7 +540,13 @@ defmodule Cldr.Calendar.Chinese do
   def alt_leap_month?(cycle, year, month) do
     start_of_month = alt_chinese_date_to_iso_days(cycle, year, month, 1)
     new_year = new_year_on_or_before(start_of_month)
-    is_no_major_solar_term?(start_of_month) && !is_prior_leap_month?(start_of_month, new_year)
+
+    # IO.inspect leap_solar_year?(start_of_month), label: "New year?"
+    # IO.inspect is_no_major_solar_term?(start_of_month), label: "Is no major solar term?"
+    # IO.inspectis_prior_leap_month?(start_of_month, new_year), label: "Is prior leap month?"
+
+    leap_solar_year?(start_of_month) &&
+      is_no_major_solar_term?(start_of_month) && !is_prior_leap_month?(start_of_month, new_year)
   end
 
   @doc """
@@ -595,6 +604,7 @@ defmodule Cldr.Calendar.Chinese do
   # This makes clear how simple the calendar is - just a sequence of
   # months aligned to new moons. The complication is only determining
   # the start of the year.
+
   def alt_date_to_iso_days(year, month, day) do
     {cycle, year} = cycle_and_year(year)
     alt_chinese_date_to_iso_days(cycle, year, month, day)
@@ -668,8 +678,8 @@ defmodule Cldr.Calendar.Chinese do
         !is_prior_leap_month?(m12, new_moon_before(m))
 
     # IO.inspect leap_year?, label: "Leap year?"
-    # IO.inspect is_no_major_solar_term?(m), label: "No major solar term?"
-    # IO.inspect is_prior_leap_month?(m12, new_moon_before(m)), label: "Is prior leap month?"
+    # IO.inspect is_no_major_solar_term?(m), label: "Is no major solar term?"
+    # IO.inspectis_prior_leap_month?(m12, new_moon_before(m)), label: "Is prior leap month?"
 
     elapsed_years = floor(1.5 - (month / 12) + ((iso_days - epoch()) / Time.mean_tropical_year()))
     {cycle, year} = cycle_and_year(elapsed_years)
