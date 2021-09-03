@@ -536,7 +536,8 @@ defmodule Cldr.Calendar.Chinese do
 
   def alt_leap_month?(cycle, year, month) do
     start_of_month = alt_chinese_date_to_iso_days(cycle, year, month, 1)
-    leap_year?(cycle, year) and is_no_major_solar_term?(start_of_month)
+    new_year = new_year_on_or_before(start_of_month)
+    is_no_major_solar_term?(start_of_month) && !is_prior_leap_month?(start_of_month, new_year)
   end
 
   @doc """

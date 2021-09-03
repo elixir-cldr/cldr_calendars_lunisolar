@@ -2,7 +2,7 @@ defmodule Cldr.Calendar.Chinese.LeapMonth.Test do
   use ExUnit.Case
   use ExUnitProperties
 
-  @max_runs 2000
+  @max_runs 3000
 
   alias Cldr.Calendar.Chinese
 
@@ -12,18 +12,22 @@ defmodule Cldr.Calendar.Chinese.LeapMonth.Test do
 
   property "Chinese Leap Month" do
     check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
-      {cycle_a, year_a, _month, leap_month?, _day} = Chinese.chinese_date_from_iso_days(iso_days)
-      {cycle, year, month, _day} = Chinese.alt_chinese_date_from_iso_days(iso_days)
+      {cycle_a, year_a, _month, leap_month?, day_a} = Chinese.chinese_date_from_iso_days(iso_days)
+      date = Chinese.alt_chinese_date_from_iso_days(iso_days)
+      {cycle, year, month, day} = date
 
       assert cycle_a == cycle
       assert year_a == year
+      assert day_a == day
 
       if leap_month? do
         assert Chinese.alt_leap_month?(cycle, year, month)
       else
         # refute Chinese.alt_leap_month?(cycle, year, month)
         if Chinese.alt_leap_month?(cycle, year, month) do
-          IO.inspect iso_days, label: "Unexpected leap month"
+          prior? = Chinese.is_prior_leap_month?(iso_days, Chinese.new_year_on_or_before(iso_days))
+          IO.inspect iso_days,
+            label: "Unexpected leap month for date #{inspect date} and is_prior? #{inspect prior?}"
         end
       end
     end
