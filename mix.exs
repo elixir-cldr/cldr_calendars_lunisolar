@@ -54,7 +54,7 @@ defmodule Cldr.Calendars.Chinese.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_cldr_calendars, "~> 1.16"},
+      {:ex_cldr_calendars, path: "../cldr_calendars", override: true},
       {:astro, path: "../astro"},
       {:stream_data, "~> 0.4", only: :test, optional: true},
       {:ex_doc, "~> 0.19", only: [:release, :dev], runtime: false, optional: true}
