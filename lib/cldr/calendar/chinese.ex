@@ -12,7 +12,13 @@ defmodule Cldr.Calendar.Chinese do
   have 353, 354, or 355 days.
 
   """
-  use Cldr.Calendar.Behaviour
+  use Cldr.Calendar.Behaviour,
+    epoch: ~D[-2636-02-15],
+    cldr_calendar_type: :chinese
+
+  # Alternative epoch starting from the reigh of Emporer Huangdi
+  # This epoch seems more common in popular press
+  # @alt_epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2696, 1, 1)
 
   import Astro.Math, only: [
     mod: 2,
@@ -32,8 +38,6 @@ defmodule Cldr.Calendar.Chinese do
   @type month :: 1..13
   @type day :: 1..30
 
-  @days_in_week 7
-
   # Winter season in degrees
   @winter 270
 
@@ -50,38 +54,7 @@ defmodule Cldr.Calendar.Chinese do
   # we can continue to use Sigil_D
   @encode_leap_month_addend 50
 
-  @doc """
-  Defines the CLDR calendar type for this calendar.
-
-  This type is used in support of `Cldr.Calendar.
-  localize/3`.
-
-  """
-  @impl true
-  def cldr_calendar_type do
-    :chinese
-  end
-
-  @doc """
-  Identifies that this calendar is month based.
-  """
-  @impl true
-  def calendar_base do
-    :month
-  end
-
-  # This epoch is the first use of the sexagesimal cycle
-  # It is also the epoch used by CLDR
-
-  @epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2636, 2, 15)
-
-  # Alternative epoch starting from the reigh of Emporer Huangdi
-  # This epoch seems more common in popular press
-  # @alt_epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2696, 1, 1)
-
-  def epoch do
-    @epoch
-  end
+  @calendar_months_in_year 12
 
   @doc """
   Since the Chinese calendar is a lunisolar
@@ -105,339 +78,6 @@ defmodule Cldr.Calendar.Chinese do
     else
       {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), @china_standard_offset}
     end
-  end
-
-  @doc """
-  Determines if the date given is valid according to
-  this calendar.
-
-  """
-  @impl true
-
-  def valid_date?(year, month, day) do
-    month <= months_in_year(year) && day <= days_in_month(year, month)
-  end
-
-  @doc """
-  Calculates the year and era from the given `year`.
-
-  """
-  @spec year_of_era(year) :: {year, era :: 0..1}
-  @impl true
-
-  def year_of_era(year) when year >= 0 do
-    {year, 1}
-  end
-
-  def year_of_era(year) when year < 0 do
-    {abs(year), 0}
-  end
-
-  @doc """
-  Calculates the quarter of the year from the given
-  `year`, `month`, and `day`.
-
-  Quarters are not implemented for the Chinese
-  calendar and this function always returns
-  `{:error, :not_defined}`.
-
-  """
-  @spec quarter_of_year(year, month, day) :: 1..4
-  @impl true
-
-  def quarter_of_year(_year, _month, _day) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Calculates the month of the year from the given
-  `year`, `month`, and `day`.
-
-  It returns integer from 1 to 12 for a
-  normal year and 1 to 13 for a leap year.
-
-  """
-  @spec month_of_year(year, month, day) :: month
-  @impl true
-
-  def month_of_year(_year, month, _day) do
-    month
-  end
-
-  @doc """
-  Calculates the week of the year from the given
-  `year`, `month`, and `day`.
-
-  Weeks are not implemented for the Chinese
-  calendar and this function always returns
-  `{:error, :not_defined}`.
-
-  """
-  @spec week_of_year(year, month, day) :: {:error, :not_defined}
-  @impl true
-
-  def week_of_year(_year, _month, _day) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Calculates the ISO week of the year from the
-  given `year`, `month`, and `day`.
-
-  Weeks are not implemented for the Chinese
-  calendar and this function always returns
-  `{:error, :not_defined}`.
-
-  """
-  @spec iso_week_of_year(year, month, day) :: {:error, :not_defined}
-  @impl true
-
-  def iso_week_of_year(_year, _month, _day) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Calculates the week of the year from the given
-  `year`, `month`, and `day`.
-
-  Weeks are not implemented for the Chinese
-  calendar and this function always returns
-  `{:error, :not_defined}`.
-
-  """
-  @spec week_of_month(year, month, day) :: {pos_integer(), pos_integer()} | {:error, :not_defined}
-  @impl true
-
-  def week_of_month(_year, _month, _day) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Calculates the day and era from the given
-  `year`, `month`, and `day`.
-
-  For the Chinese calendar we consider only
-  the epoch as the demarkation between eras
-  (in the same way as the Gregorian calendar
-  works).
-
-  Historically eras have been marked by the
-  reign of an emporer but this has no modern
-  relevant or use.
-
-  """
-  @spec day_of_era(year, month, day) :: {day :: pos_integer(), era :: 0..1}
-  @impl true
-
-  def day_of_era(year, month, day) do
-    {_, era} = year_of_era(year)
-    days = date_to_iso_days(year, month, day)
-    {days + epoch(), era}
-  end
-
-  @doc """
-  Calculates the day of the year from the given `year`, `month`, and `day`.
-
-  """
-  @spec day_of_year(year, month, day) :: 1..366
-  @impl true
-
-  def day_of_year(year, month, day) do
-    first_day = date_to_iso_days(year, 1, 1)
-    this_day = date_to_iso_days(year, month, day)
-    this_day - first_day + 1
-  end
-
-  @epoch_day_of_week 6
-
-  if Code.ensure_loaded?(Date) && function_exported?(Date, :day_of_week, 2) do
-    @last_day_of_week 5
-
-    @spec day_of_week(year, month, day, :default | atom()) ::
-            {Calendar.day_of_week(), first_day_of_week :: non_neg_integer(),
-             last_day_of_week :: non_neg_integer()}
-
-    @impl true
-    def day_of_week(year, month, day, :default) do
-      days = date_to_iso_days(year, month, day)
-      days_after_saturday = rem(days, @days_in_week)
-      day = Cldr.Math.amod(days_after_saturday + @epoch_day_of_week, @days_in_week)
-
-      {day, @epoch_day_of_week, @last_day_of_week}
-    end
-  else
-    @spec day_of_week(year, month, day) :: 1..7
-
-    @impl true
-    def day_of_week(year, month, day) do
-      days = date_to_iso_days(year, month, day)
-      days_after_saturday = rem(days, @days_in_week)
-      Cldr.Math.amod(days_after_saturday + @epoch_day_of_week, @days_in_week)
-    end
-  end
-
-  @doc """
-  Returns the number of periods in a given
-  `year`. A period corresponds to a month
-  in month-based calendars and a week in
-  week-based calendars.
-
-  """
-  @impl true
-
-  def periods_in_year(year) do
-    months_in_year(year)
-  end
-
-  @doc """
-  Returns the number of months in a
-  given Chinese `year`.
-
-  """
-  @impl true
-
-  def months_in_year(year) do
-    if leap_year?(year), do: 13, else: 12
-  end
-
-  @doc """
-  Returns the number of weeks in a
-  given Chinese `year`.
-
-  """
-  @impl true
-
-  def weeks_in_year(_year) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Returns the number days in a given year.
-
-  The year is the number of years since the
-  Chinese epoch.
-
-  """
-  @impl true
-
-  def days_in_year(year) do
-    this_year = date_to_iso_days(year, 1, 1)
-    next_year = date_to_iso_days(year + 1, 1, 1)
-    next_year - this_year + 1
-  end
-
-  @doc """
-  Returns how many days there are in the given year
-  and month.
-
-  Since months are determined by the number of
-  days from one new moon to the next, there is
-  no fixed number of days for a given month
-  number.
-
-  The month number is the ordinal month number
-  which means that the numbers do not always
-  increase monotoncally.
-
-  """
-  @spec days_in_month(year, month) :: 29..30
-  @impl true
-
-  def days_in_month(year, month) do
-    start_of_this_month = date_to_iso_days(year, month, 1)
-    start_of_next_month = new_moon_on_or_after(start_of_this_month + 1)
-    start_of_next_month - start_of_this_month
-  end
-
-  @doc """
-  Returns the number days in a a week.
-
-  """
-  def days_in_week do
-    @days_in_week
-  end
-
-  @doc """
-  Returns a `Date.Range.t` representing
-  a given year.
-
-  """
-  @impl true
-
-  def year(year) do
-    last_month = months_in_year(year)
-    days_in_last_month = days_in_month(year, last_month)
-
-    with {:ok, start_date} <- Date.new(year, 1, 1, __MODULE__),
-         {:ok, end_date} <- Date.new(year, last_month, days_in_last_month, __MODULE__) do
-      Date.range(start_date, end_date)
-    end
-  end
-
-  @doc """
-  Returns a `Date.Range.t` representing
-  a given quarter of a year.
-
-  """
-  @impl true
-
-  def quarter(_year, _quarter) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Returns a `Date.Range.t` representing
-  a given month of a year.
-
-  """
-  @impl true
-
-  def month(year, month) do
-    starting_day = 1
-    ending_day = days_in_month(year, month)
-
-    with {:ok, start_date} <- Date.new(year, month, starting_day, __MODULE__),
-         {:ok, end_date} <- Date.new(year, month, ending_day, __MODULE__) do
-      Date.range(start_date, end_date)
-    end
-  end
-
-  @doc """
-  Returns a `Date.Range.t` representing
-  a given week of a year.
-
-  """
-  @impl true
-
-  def week(_year, _week) do
-    {:error, :not_defined}
-  end
-
-  @doc """
-  Adds an `increment` number of `date_part`s
-  to a `year-month-day`.
-
-  `date_part` can be `:months` only.
-
-  """
-  @impl true
-
-  def plus(year, month, day, date_part, increment, options \\ [])
-
-  def plus(year, month, day, :months, months, options) do
-    months_in_year = months_in_year(year)
-    {year_increment, new_month} = Cldr.Math.div_amod(month + months, months_in_year)
-    new_year = year + year_increment
-
-    new_day =
-      if Keyword.get(options, :coerce, false) do
-        max_new_day = days_in_month(new_year, new_month)
-        min(day, max_new_day)
-      else
-        day
-      end
-
-    {new_year, new_month, new_day}
   end
 
   @doc """
@@ -541,20 +181,24 @@ defmodule Cldr.Calendar.Chinese do
     |> leap_year?()
   end
 
-  def leap_solar_year?(iso_days) do
-    s1 = december_solstice_on_or_before(iso_days)
-    s2 = december_solstice_on_or_before(s1 + @one_solar_year_later)
-
-    next_m11 = new_moon_before(1 + s2)
-    m12 = new_moon_on_or_after(1 + s1)
-
-    # 12 full lunar months means 13 new moons
-    round((next_m11 - m12) / Time.mean_synodic_month()) == 12
+  defp leap_lunisolar_year?({start_of_year, end_of_year}) do
+    leap_lunisolar_year?(start_of_year, end_of_year)
   end
 
-  def alt_leap_solar_year?(year, month, day) do
+  defp leap_lunisolar_year?(iso_days) when is_number(iso_days) do
+    iso_days
+    |> lunisolar_year()
+    |> leap_lunisolar_year?()
+  end
+
+  defp leap_lunisolar_year?(start_of_year, end_of_year) do
+    # 12 full lunar months means 13 new moons
+    round((end_of_year - start_of_year) / Time.mean_synodic_month()) == @calendar_months_in_year
+  end
+
+  def alt_leap_lunisolar_year?(year, month, day) do
     iso_days = alt_date_to_iso_days(year, month, day)
-    leap_solar_year?(iso_days)
+    leap_lunisolar_year?(iso_days)
   end
 
   @doc """
@@ -594,7 +238,7 @@ defmodule Cldr.Calendar.Chinese do
     start_of_month = alt_chinese_date_to_iso_days(cycle, year, month, 1)
     new_year = new_year_on_or_before(start_of_month)
 
-    leap_solar_year?(start_of_month) &&
+    leap_lunisolar_year?(start_of_month) &&
       no_major_solar_term?(start_of_month) &&
       !is_prior_leap_month?(start_of_month, new_year)
   end
@@ -760,10 +404,10 @@ defmodule Cldr.Calendar.Chinese do
       lunisolar_year(iso_days)
 
     leap_sui_year? =
-      leap_sui_year?(prior_month_12, next_month_11)
+      leap_lunisolar_year?(prior_month_12, next_month_11)
 
     start_of_month =
-      new_moon_before(1 + iso_days)
+      new_moon_before(iso_days + 1)
 
     month =
       start_of_month
@@ -791,11 +435,6 @@ defmodule Cldr.Calendar.Chinese do
   defp leap_month?(leap_sui_year?, iso_days, start_of_sui_year) do
     leap_sui_year? && no_major_solar_term?(iso_days) &&
       !is_prior_leap_month?(start_of_sui_year, new_moon_before(iso_days))
-  end
-
-  defp leap_sui_year?(start_of_year, end_of_year) do
-    # 12 full lunar months means 13 new moons
-    round((end_of_year - start_of_year) / Time.mean_synodic_month()) == @calendar_months_in_year
   end
 
   defp offset_if_prior_leap_month(months, true = _leap_sui_year?, last_month_12, start_of_month) do
@@ -978,7 +617,7 @@ defmodule Cldr.Calendar.Chinese do
     prior_month_13 = new_moon_on_or_after(1 + prior_month_12)
 
     leap_year? =
-      leap_sui_year?(prior_month_12, next_month_11)
+      leap_lunisolar_year?(prior_month_12, next_month_11)
 
     no_prior_major_solar_term? =
       no_major_solar_term?(prior_month_12) || no_major_solar_term?(prior_month_13)
