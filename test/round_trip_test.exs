@@ -6,6 +6,13 @@ defmodule Cldr.Calendar.Chinese.RoundTrip.Test do
 
   alias Cldr.Calendar.Chinese
 
+  # property "Chinese Date Round Trip" do
+  #   check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
+  #     chinese_date = Chinese.chinese_date_from_iso_days(iso_days)
+  #     assert Chinese.chinese_date_to_iso_days(chinese_date) == iso_days
+  #   end
+  # end
+
   property "Chinese Date Round Trip" do
     check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
       chinese_date = Chinese.chinese_date_from_iso_days(iso_days)
@@ -13,17 +20,10 @@ defmodule Cldr.Calendar.Chinese.RoundTrip.Test do
     end
   end
 
-  property "Alt Chinese Date Round Trip" do
-    check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
-      chinese_date = Chinese.alt_chinese_date_from_iso_days(iso_days)
-      assert Chinese.alt_chinese_date_to_iso_days(chinese_date) == iso_days
-    end
-  end
-
   property "Chinese Date Cycle, Year and day are the same for alt and non-alt" do
     check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
-      {cycle, year, _, _, day} = Chinese.chinese_date_from_iso_days(iso_days)
-      {cycle_a, year_a, _, day_a} = Chinese.alt_chinese_date_from_iso_days(iso_days)
+      {cycle, year, _, _, day} = Chinese.alt_chinese_date_from_iso_days(iso_days)
+      {cycle_a, year_a, _, day_a} = Chinese.chinese_date_from_iso_days(iso_days)
 
       assert cycle == cycle_a and year == year_a and day == day_a
     end
@@ -31,8 +31,8 @@ defmodule Cldr.Calendar.Chinese.RoundTrip.Test do
 
   property "Alt month is +1 of cardinal month when its a leap month" do
     check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
-      {_cycle, _year, month, leap_month?, _day} = Chinese.chinese_date_from_iso_days(iso_days)
-      {_cycle_a, _year_a, month_a, _day_a} = Chinese.alt_chinese_date_from_iso_days(iso_days)
+      {_cycle, _year, month, leap_month?, _day} = Chinese.alt_chinese_date_from_iso_days(iso_days)
+      {_cycle_a, _year_a, month_a, _day_a} = Chinese.chinese_date_from_iso_days(iso_days)
 
       if leap_month? do
         assert month_a == month + 1
