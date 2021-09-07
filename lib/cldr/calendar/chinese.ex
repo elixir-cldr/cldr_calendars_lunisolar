@@ -16,8 +16,7 @@ defmodule Cldr.Calendar.Chinese do
     epoch: ~D[-2636-02-15],
     cldr_calendar_type: :chinese
 
-  # Alternative epoch starting from the reigh of Emporer Huangdi
-  # This epoch seems more common in popular press
+  # Alternative epoch starting from the reign of Emporer Huangdi
   # @alt_epoch Cldr.Calendar.Gregorian.date_to_iso_days(-2696, 1, 1)
 
   import Astro.Math, only: [
@@ -62,7 +61,8 @@ defmodule Cldr.Calendar.Chinese do
 
   def month_of_year(year, month, day) do
     iso_days = date_to_iso_days(year, month, day)
-    month_and_leap(iso_days)
+    {month, _start_of_month, leap_month?} = month_and_leap(iso_days)
+    {month, leap_month?}
   end
 
   @doc """

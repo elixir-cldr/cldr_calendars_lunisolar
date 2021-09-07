@@ -5,7 +5,7 @@ defmodule Cldr.Calendars.Chinese.MixProject do
 
   def project do
     [
-      app: :cldr_calendars_chinese,
+      app: :ex_cldr_calendars_chinese,
       version: @version,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
