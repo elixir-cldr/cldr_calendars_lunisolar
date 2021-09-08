@@ -1,16 +1,16 @@
-defmodule Cldr.Calendars.Chinese.MixProject do
+defmodule Cldr.Calendars.Lunisolar.MixProject do
   use Mix.Project
 
   @version "0.1.0"
 
   def project do
     [
-      app: :ex_cldr_calendars_chinese,
+      app: :ex_cldr_calendars_lunisolar,
       version: @version,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      source_url: "https://github.com/elixir-cldr/cldr_calendars_chinese",
+      source_url: "https://github.com/elixir-cldr/cldr_calendars_lunisolar",
       description: description(),
       package: package(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -23,7 +23,7 @@ defmodule Cldr.Calendars.Chinese.MixProject do
 
   def description do
     """
-    Implementation of the Coptic calendar for Elixir
+    Implementation of Lunisolar Chinese and Japanese calendars for Elixir
     """
   end
 
@@ -44,14 +44,12 @@ defmodule Cldr.Calendars.Chinese.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:ex_cldr_calendars, path: "../cldr_calendars", override: true},
@@ -63,11 +61,11 @@ defmodule Cldr.Calendars.Chinese.MixProject do
 
   def links do
     %{
-      "GitHub" => "https://github.com/elixir-cldr/cldr_calendars_chinese",
+      "GitHub" => "https://github.com/elixir-cldr/cldr_calendars_lunisolar",
       "Readme" =>
-        "https://github.com/elixir-cldr/cldr_calendars_chinese/blob/v#{@version}/README.md",
+        "https://github.com/elixir-cldr/cldr_calendars_lunisolar/blob/v#{@version}/README.md",
       "Changelog" =>
-        "https://github.com/elixir-cldr/cldr_calendars_chinese/blob/v#{@version}/CHANGELOG.md"
+        "https://github.com/elixir-cldr/cldr_calendars_lunisolar/blob/v#{@version}/CHANGELOG.md"
     }
   end
 

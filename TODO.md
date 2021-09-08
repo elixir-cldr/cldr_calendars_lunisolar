@@ -2,7 +2,13 @@
 
 * Extract the main calendar calculations to `Cldr.Calendar.Lunisolar` and then the Chinese, Korean, Japanese calendars are easier to isolate
 
-* Move the boilerplate functions to another module we can `use` to
+* [X] Tests for `month/2`. This needs some thought given the encoding of leap months.
+
+* [X} Work on calendar formatting
+
+* [X] Move the boilerplate functions to another module we can `use` to
+
+* [X] Tests for `year/1`
 
 * Review and update readme
 
@@ -18,13 +24,8 @@
 
 * Tests for `days_in_year/1`
 
-* Tests for `year/1`
-
-* Tests for `month/2`. This needs some thought given the encoding of leap months.
-
 * Test stem and branch functions (needed for localisation)
 
-* Work on calendar formatting
 
 
 
