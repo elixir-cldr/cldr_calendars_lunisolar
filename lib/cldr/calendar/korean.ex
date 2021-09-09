@@ -1,4 +1,4 @@
-defmodule Cldr.Calendar.Chinese do
+defmodule Cldr.Calendar.Korean do
   @moduledoc """
   Implementation of the Chinese lunisolar calendar.
 
@@ -11,20 +11,18 @@ defmodule Cldr.Calendar.Chinese do
   can vary between 29 and 30 days and a normal year can
   have 353, 354, or 355 days.
 
-  Wikipedia's Japanese article on the [eras of the Japanese calendar](https://translate.google.com/translate?sl=auto&tl=en&u=https://ja.wikipedia.org/wiki/元号一覧_%28日本%29)
-  contains the reference for the eras in the CLDR data use
-  in this calendar implementation.
-
   """
   use Cldr.Calendar.Behaviour,
-    epoch: ~D[-2636-02-15],
-    cldr_calendar_type: :chinese
+    epoch: ~D[-2332-01-01],
+    cldr_calendar_type: :dangi
 
   # Alternative epoch starting from the reign of Emporer Huangdi: ~D[-2696-01-01)
 
   import Astro.Math, only: [
     angle: 3,
-    mt: 1
+    mt: 1,
+    deg: 1,
+    amod: 2
   ]
 
   alias Astro.Time
@@ -75,7 +73,7 @@ defmodule Cldr.Calendar.Chinese do
   @impl true
 
   def leap_year?(year) do
-    Lunisolar.leap_year?(year, epoch(), &chinese_location/1)
+    Lunisolar.leap_year?(year, epoch(), &korean_location/1)
   end
 
   @doc """
@@ -126,19 +124,20 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   def leap_month?(cycle, year, month) do
-    Lunisolar.leap_month?(cycle, year, month, epoch(), &chinese_location/1)
+    Lunisolar.leap_month?(cycle, year, month, epoch(), &korean_location/1)
   end
 
-  def cycle_and_year(iso_days) do
-    Lunisolar.cycle_and_year(iso_days)
-  end
+  @years_in_cycle 60
 
-  def elapsed_years({cycle, year}) do
-    Lunisolar.elapsed_years(cycle, year)
+  def cycle_and_year(elapsed_years) do
+    cycle = floor((elapsed_years + 364) / @years_in_cycle)
+    year = amod(elapsed_years + 364, @years_in_cycle)
+
+    {cycle, year}
   end
 
   def elapsed_years(cycle, year) do
-    Lunisolar.elapsed_years(cycle, year)
+    (@years_in_cycle * cycle) + year - 364
   end
 
   def date_to_iso_days({year, month, day}) do
@@ -146,11 +145,11 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   def date_to_iso_days(year, month, day) do
-    Lunisolar.date_to_iso_days(year, month, day, epoch(), &chinese_location/1)
+    Lunisolar.date_to_iso_days(year, month, day, epoch(), &korean_location/1)
   end
 
   def date_from_iso_days(iso_days) do
-    Lunisolar.date_from_iso_days(iso_days, epoch(), &chinese_location/1)
+    Lunisolar.date_from_iso_days(iso_days, epoch(), &korean_location/1)
   end
 
   def cyclic_year(year, month, day) do
@@ -158,15 +157,15 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   def related_gregorian_year(year, month, day) do
-    Lunisolar.related_gregorian_year(year, month, day, epoch(), &chinese_location/1)
+    Lunisolar.related_gregorian_year(year, month, day, epoch(), &korean_location/1)
   end
 
   def month_of_year(year, month, day) do
-    Lunisolar.month_of_year(year, month, day, epoch(), &chinese_location/1)
+    Lunisolar.month_of_year(year, month, day, epoch(), &korean_location/1)
   end
 
   def new_moon_on_or_after(iso_days) do
-    Lunisolar.new_moon_on_or_after(iso_days, &chinese_location/1)
+    Lunisolar.new_moon_on_or_after(iso_days, &korean_location/1)
   end
 
   # Since the Chinese calendar is a lunisolar
@@ -177,30 +176,36 @@ defmodule Cldr.Calendar.Chinese do
   # used. Since 1929, the longitude of the
   # standard China timezone (GMT+8) is used.
 
-  @beijing_local_offset Astro.Time.hours_to_days(1397 / 180)
-  @china_standard_offset Astro.Time.hours_to_days(8)
+  @seoul_local_offset Astro.Time.hours_to_days(9 + 143 / 450)
+  @korea_standard_offset Astro.Time.hours_to_days(9)
 
-  @spec chinese_location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
-  def chinese_location(iso_days) do
-    {year, _month, _day} = Cldr.Calendar.Gregorian.date_from_iso_days(trunc(iso_days))
-
-    if year < 1929 do
-      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), @beijing_local_offset}
-    else
-      {angle(39, 55, 0), angle(116, 25, 0), mt(43.5), @china_standard_offset}
-    end
+  @spec korean_location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
+  def korean_location(iso_days) do
+    if (tee < fixed_from_gregorian(gregorian_date(1908, APRIL, 1))):
+        #local mean time for longitude 126 deg 58 min
+        z = 3809/450
+    elif (tee < fixed_from_gregorian(gregorian_date(1912, JANUARY, 1))):
+        z = 8.5
+    elif (tee < fixed_from_gregorian(gregorian_date(1954, MARCH, 21))):
+        z = 9
+    elif (tee < fixed_from_gregorian(gregorian_date(1961, AUGUST, 10))):
+        z = 8.5
+    else:
+        z = 9
+    return location(angle(37, 34, 0), angle(126, 58, 0),
+                    mt(0), days_from_hours(z))
   end
 
   # The following are for testing purposes only
 
   @doc false
   def chinese_date_from_iso_days(iso_days) do
-    Lunisolar.chinese_date_from_iso_days(iso_days, epoch(), &chinese_location/1)
+    Lunisolar.chinese_date_from_iso_days(iso_days, epoch(), &korean_location/1)
   end
 
   @doc false
   def alt_chinese_date_from_iso_days(iso_days) do
-    Lunisolar.alt_chinese_date_from_iso_days(iso_days, epoch(), &chinese_location/1)
+    Lunisolar.alt_chinese_date_from_iso_days(iso_days, epoch(), &korean_location/1)
   end
 
   @doc false
@@ -209,12 +214,12 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   def chinese_date_to_iso_days(cycle, year, month, day) do
-    Lunisolar.chinese_date_to_iso_days(cycle, year, month, day, epoch(), &chinese_location/1)
+    Lunisolar.chinese_date_to_iso_days(cycle, year, month, day, epoch(), &korean_location/1)
   end
 
   @doc false
   def alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day) do
-    Lunisolar.alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &chinese_location/1)
+    Lunisolar.alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &korean_location/1)
   end
 
 end

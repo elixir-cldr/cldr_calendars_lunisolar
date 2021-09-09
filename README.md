@@ -1,6 +1,6 @@
-# Coptic Calendar
+# Lunisolar Calendars
 
-This library implements the Chinese calendar.
+This library implements the Chinese, Japanese and Korean lunisolar calendars.
 
 From [wikipedia](https://en.wikipedia.org/wiki/Chinese_calendar):
 
@@ -12,7 +12,7 @@ The evening state-run news program Xinwen Lianbo in the P.R.C. continues to anno
 
 ## Usage
 
-[ex_cldr_calendars_chinese](https://hex.pm/packages/ex_cldr_calenars_chinese) conforms to both the `Calendar` and `Cldr.Calendar` behaviours and therefore the functions in the `Date`, `DateTime`, `NaiveDateTime`, `Time` and `Calendar` functions are supported.
+[ex_cldr_calendars_lunisolar](https://hex.pm/packages/ex_cldr_calenars_lunisolar) conforms to both the `Calendar` and `Cldr.Calendar` behaviours and therefore the functions in the `Date`, `DateTime`, `NaiveDateTime`, `Time` and `Calendar` functions are supported.
 
 For Elixir version 1.10 and later `Sigil_D` supports user-defined calendars:
 ```
@@ -22,7 +22,7 @@ iex> ~D[1736-03-30 Cldr.Calendar.Coptic]
 
 ## Localization
 
-`ex_cldr_calendars_chinese` depends on [ex_cldr_calendars](https://hex.pm/packages/ex_cldr_calendars) which supports calendar localization. For full date and time formatting see [ex_cldr_dates_times](https://hex.pm/packages/ex_cldr_dates_times).
+`ex_cldr_calendars_lunisolar` depends on [ex_cldr_calendars](https://hex.pm/packages/ex_cldr_calendars) which supports calendar localization. For full date and time formatting see [ex_cldr_dates_times](https://hex.pm/packages/ex_cldr_dates_times).
 
 Basic localization is executed by the `Cldr.Calendar.localize/3`. For example:
 
