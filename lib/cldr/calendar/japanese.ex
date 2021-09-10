@@ -1,8 +1,8 @@
 defmodule Cldr.Calendar.Japanese do
   @moduledoc """
-  Implementation of the Chinese lunisolar calendar.
+  Implementation of the Japanese lunisolar calendar.
 
-  In a ‘regular’ Chinese lunisolar calendar, one year
+  In a ‘regular’ Japanese lunisolar calendar, one year
   is divided into 12 months, with one month corresponding
   to the time between two full moons.
 
@@ -57,19 +57,19 @@ defmodule Cldr.Calendar.Japanese do
 
   ## Examples
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 37)
+      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 37)
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 38)
+      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 38)
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 39)
+      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 39)
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 40)
+      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 40)
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 41)
+      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 41)
       false
 
   """
@@ -105,19 +105,19 @@ defmodule Cldr.Calendar.Japanese do
 
   ## Examples
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 37
+      iex> Cldr.Calendar.Japanese.leap_year? 78, 37
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 38
+      iex> Cldr.Calendar.Japanese.leap_year? 78, 38
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 39
+      iex> Cldr.Calendar.Japanese.leap_year? 78, 39
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 40
+      iex> Cldr.Calendar.Japanese.leap_year? 78, 40
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 41
+      iex> Cldr.Calendar.Japanese.leap_year? 78, 41
       false
 
   """
@@ -191,32 +191,6 @@ defmodule Cldr.Calendar.Japanese do
     else
       {deg(35), deg(135), mt(0), @japan_standard_offset}
     end
-  end
-
-  # The following are for testing purposes only
-
-  @doc false
-  def chinese_date_from_iso_days(iso_days) do
-    Lunisolar.chinese_date_from_iso_days(iso_days, epoch(), &japanese_location/1)
-  end
-
-  @doc false
-  def alt_chinese_date_from_iso_days(iso_days) do
-    Lunisolar.alt_chinese_date_from_iso_days(iso_days, epoch(), &japanese_location/1)
-  end
-
-  @doc false
-  def chinese_date_to_iso_days({cycle, year, month, day}) do
-    chinese_date_to_iso_days(cycle, year, month, day)
-  end
-
-  def chinese_date_to_iso_days(cycle, year, month, day) do
-    Lunisolar.chinese_date_to_iso_days(cycle, year, month, day, epoch(), &japanese_location/1)
-  end
-
-  @doc false
-  def alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day) do
-    Lunisolar.alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &japanese_location/1)
   end
 
 end

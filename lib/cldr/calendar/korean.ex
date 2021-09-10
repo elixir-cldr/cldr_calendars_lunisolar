@@ -1,8 +1,8 @@
 defmodule Cldr.Calendar.Korean do
   @moduledoc """
-  Implementation of the Chinese lunisolar calendar.
+  Implementation of the Korean lunisolar calendar.
 
-  In a ‘regular’ Chinese lunisolar calendar, one year
+  In a ‘regular’ Korean lunisolar calendar, one year
   is divided into 12 months, with one month corresponding
   to the time between two full moons.
 
@@ -16,12 +16,9 @@ defmodule Cldr.Calendar.Korean do
     epoch: ~D[-2332-01-01],
     cldr_calendar_type: :dangi
 
-  # Alternative epoch starting from the reign of Emporer Huangdi: ~D[-2696-01-01)
-
   import Astro.Math, only: [
     angle: 3,
     mt: 1,
-    deg: 1,
     amod: 2
   ]
 
@@ -53,19 +50,19 @@ defmodule Cldr.Calendar.Korean do
 
   ## Examples
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 37)
+      iex> Cldr.Calendar.Korean.leap_year? Cldr.Calendar.Korean.elapsed_years(78, 37)
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 38)
+      iex> Cldr.Calendar.Korean.leap_year? Cldr.Calendar.Korean.elapsed_years(78, 38)
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 39)
+      iex> Cldr.Calendar.Korean.leap_year? Cldr.Calendar.Korean.elapsed_years(78, 39)
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 40)
+      iex> Cldr.Calendar.Korean.leap_year? Cldr.Calendar.Korean.elapsed_years(78, 40)
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 41)
+      iex> Cldr.Calendar.Korean.leap_year? Cldr.Calendar.Korean.elapsed_years(78, 41)
       false
 
   """
@@ -101,19 +98,19 @@ defmodule Cldr.Calendar.Korean do
 
   ## Examples
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 37
+      iex> Cldr.Calendar.Korean.leap_year? 78, 37
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 38
+      iex> Cldr.Calendar.Korean.leap_year? 78, 38
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 39
+      iex> Cldr.Calendar.Korean.leap_year? 78, 39
       false
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 40
+      iex> Cldr.Calendar.Korean.leap_year? 78, 40
       true
 
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 41
+      iex> Cldr.Calendar.Korean.leap_year? 78, 41
       false
 
   """
@@ -168,58 +165,29 @@ defmodule Cldr.Calendar.Korean do
     Lunisolar.new_moon_on_or_after(iso_days, &korean_location/1)
   end
 
-  # Since the Chinese calendar is a lunisolar
+  # Since the Korean (dangi) calendar is a lunisolar
   # calendar, a refernce longitude is required
   # in order to calculate sunset and sunrise.
-  #
-  # Prior to 1929, the longitude of Beijing was
-  # used. Since 1929, the longitude of the
-  # standard China timezone (GMT+8) is used.
-
-  @seoul_local_offset Astro.Time.hours_to_days(9 + 143 / 450)
-  @korea_standard_offset Astro.Time.hours_to_days(9)
 
   @spec korean_location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
   def korean_location(iso_days) do
-    if (tee < fixed_from_gregorian(gregorian_date(1908, APRIL, 1))):
-        #local mean time for longitude 126 deg 58 min
-        z = 3809/450
-    elif (tee < fixed_from_gregorian(gregorian_date(1912, JANUARY, 1))):
-        z = 8.5
-    elif (tee < fixed_from_gregorian(gregorian_date(1954, MARCH, 21))):
-        z = 9
-    elif (tee < fixed_from_gregorian(gregorian_date(1961, AUGUST, 10))):
-        z = 8.5
-    else:
-        z = 9
-    return location(angle(37, 34, 0), angle(126, 58, 0),
-                    mt(0), days_from_hours(z))
+    offset = korean_offset(iso_days)
+    {angle(37, 34, 0), angle(126, 58, 0), mt(0), Astro.Time.hours_to_days(offset)}
   end
 
-  # The following are for testing purposes only
+  @korea_1908 Cldr.Calendar.Gregorian.date_to_iso_days(1908, 4, 1)
+  @korea_1912 Cldr.Calendar.Gregorian.date_to_iso_days(1912, 1, 1)
+  @korea_1954 Cldr.Calendar.Gregorian.date_to_iso_days(1954, 3, 21)
+  @korea_1961 Cldr.Calendar.Gregorian.date_to_iso_days(1961, 8, 10)
 
-  @doc false
-  def chinese_date_from_iso_days(iso_days) do
-    Lunisolar.chinese_date_from_iso_days(iso_days, epoch(), &korean_location/1)
-  end
-
-  @doc false
-  def alt_chinese_date_from_iso_days(iso_days) do
-    Lunisolar.alt_chinese_date_from_iso_days(iso_days, epoch(), &korean_location/1)
-  end
-
-  @doc false
-  def chinese_date_to_iso_days({cycle, year, month, day}) do
-    chinese_date_to_iso_days(cycle, year, month, day)
-  end
-
-  def chinese_date_to_iso_days(cycle, year, month, day) do
-    Lunisolar.chinese_date_to_iso_days(cycle, year, month, day, epoch(), &korean_location/1)
-  end
-
-  @doc false
-  def alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day) do
-    Lunisolar.alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &korean_location/1)
+  def korean_offset(iso_days) do
+    cond do
+      iso_days < @korea_1908 -> 3809 / 450
+      iso_days < @korea_1912 -> 8.5
+      iso_days < @korea_1954 -> 9
+      iso_days < @korea_1961 -> 8.5
+      true -> 9
+    end
   end
 
 end
