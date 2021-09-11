@@ -13,13 +13,13 @@ defmodule Cldr.Calendar.Korean do
 
   """
   use Cldr.Calendar.Behaviour,
-    epoch: ~D[-2332-01-01],
+    epoch: ~D[-2332-02-15],
     cldr_calendar_type: :dangi
 
   import Astro.Math, only: [
     angle: 3,
     mt: 1,
-    amod: 2
+    # amod: 2
   ]
 
   alias Astro.Time
@@ -124,18 +124,18 @@ defmodule Cldr.Calendar.Korean do
     Lunisolar.leap_month?(cycle, year, month, epoch(), &korean_location/1)
   end
 
-  @years_in_cycle 60
-
-  def cycle_and_year(elapsed_years) do
-    cycle = floor((elapsed_years + 364) / @years_in_cycle)
-    year = amod(elapsed_years + 364, @years_in_cycle)
-
-    {cycle, year}
-  end
-
-  def elapsed_years(cycle, year) do
-    (@years_in_cycle * cycle) + year - 364
-  end
+  # @years_in_cycle 60
+  #
+  # def cycle_and_year(elapsed_years) do
+  #   cycle = floor((elapsed_years + 364) / @years_in_cycle)
+  #   year = amod(elapsed_years + 364, @years_in_cycle)
+  #
+  #   {cycle, year}
+  # end
+  #
+  # def elapsed_years(cycle, year) do
+  #   (@years_in_cycle * cycle) + year - 364
+  # end
 
   def date_to_iso_days({year, month, day}) do
     date_to_iso_days(year, month, day)

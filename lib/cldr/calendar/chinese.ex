@@ -169,6 +169,10 @@ defmodule Cldr.Calendar.Chinese do
     Lunisolar.new_moon_on_or_after(iso_days, &chinese_location/1)
   end
 
+  def new_moon_before(iso_days) do
+    Lunisolar.new_moon_before(iso_days, &chinese_location/1)
+  end
+
   # Since the Chinese calendar is a lunisolar
   # calendar, a refernce longitude is required
   # in order to calculate sunset and sunrise.

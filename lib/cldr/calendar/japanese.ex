@@ -11,17 +11,14 @@ defmodule Cldr.Calendar.Japanese do
   can vary between 29 and 30 days and a normal year can
   have 353, 354, or 355 days.
 
-  The epoch is the same as the gregorian calendar since
-  the Japanese calendar uses these years in "westernised"
-  representations. The underlying cycle and sexigesimal
-  year are the still primary year.
+  We define the epoch to the first new moon in the first
+  year of the [Taika era](https://en.wikipedia.org/wiki/Taika_(era))
+  which is recorded as the first imperial era.
 
   """
   use Cldr.Calendar.Behaviour,
-    epoch: ~D[0000-01-01],
+    epoch: ~D[0645-02-05],
     cldr_calendar_type: :japanese
-
-  # Alternative epoch starting from the reign of Emporer Huangdi: ~D[-2696-01-01)
 
   import Astro.Math, only: [
     angle: 3,
@@ -169,6 +166,10 @@ defmodule Cldr.Calendar.Japanese do
 
   def new_moon_on_or_after(iso_days) do
     Lunisolar.new_moon_on_or_after(iso_days, &japanese_location/1)
+  end
+
+  def new_moon_before(iso_days) do
+    Lunisolar.new_moon_before(iso_days, &japanese_location/1)
   end
 
   # Since the Japanese calendar is a lunisolar
