@@ -17,7 +17,6 @@ defmodule Cldr.Calendar.Japanese do
 
   """
   use Cldr.Calendar.Behaviour,
-    # epoch: ~D[0645-02-05],
     epoch: ~D[0001-01-01],
     cldr_calendar_type: :japanese
 
