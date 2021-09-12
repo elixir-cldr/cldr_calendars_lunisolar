@@ -199,12 +199,12 @@ defmodule Cldr.Calendar.Chinese do
 
   @doc false
   def chinese_date_from_iso_days(iso_days) do
-    Lunisolar.chinese_date_from_iso_days(iso_days, epoch(), &chinese_location/1)
+    Lunisolar.cyclical_date_from_iso_days(iso_days, epoch(), &chinese_location/1)
   end
 
   @doc false
   def alt_chinese_date_from_iso_days(iso_days) do
-    Lunisolar.alt_chinese_date_from_iso_days(iso_days, epoch(), &chinese_location/1)
+    Lunisolar.alt_cyclical_date_from_iso_days(iso_days, epoch(), &chinese_location/1)
   end
 
   @doc false
@@ -213,12 +213,12 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   def chinese_date_to_iso_days(cycle, year, month, day) do
-    Lunisolar.chinese_date_to_iso_days(cycle, year, month, day, epoch(), &chinese_location/1)
+    Lunisolar.cyclical_date_to_iso_days(cycle, year, month, day, epoch(), &chinese_location/1)
   end
 
   @doc false
   def alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day) do
-    Lunisolar.alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &chinese_location/1)
+    Lunisolar.alt_cyclical_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &chinese_location/1)
   end
 
 end

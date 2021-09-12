@@ -120,7 +120,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   def leap_month?(cycle, year, month, epoch, location_fun) do
-    start_of_month = chinese_date_to_iso_days(cycle, year, month, 1, epoch, location_fun)
+    start_of_month = cyclical_date_to_iso_days(cycle, year, month, 1, epoch, location_fun)
     new_year = new_year_on_or_before(start_of_month, location_fun)
 
     leap_lunisolar_year?(start_of_month, location_fun) &&
@@ -138,14 +138,14 @@ defmodule Cldr.Calendar.Lunisolar do
 
   def date_to_iso_days(year, month, day, epoch, location_fun) do
     {cycle, year} = cycle_and_year(year)
-    chinese_date_to_iso_days(cycle, year, month, day, epoch, location_fun)
+    cyclical_date_to_iso_days(cycle, year, month, day, epoch, location_fun)
   end
 
   def date_to_iso_days({year, month, day}, epoch, location_fun) do
     date_to_iso_days(year, month, day, epoch, location_fun)
   end
 
-  def chinese_date_to_iso_days(cycle, year, month, day, epoch, location_fun) do
+  def cyclical_date_to_iso_days(cycle, year, month, day, epoch, location_fun) do
     new_year =
       cycle
       |> mid_year(year, epoch)
@@ -156,8 +156,8 @@ defmodule Cldr.Calendar.Lunisolar do
     prior_new_moon + day - 1
   end
 
-  def chinese_date_to_iso_days({cycle, year, month, day}, epoch, location_fun) do
-    chinese_date_to_iso_days(cycle, year, month, day, epoch, location_fun)
+  def cyclical_date_to_iso_days({cycle, year, month, day}, epoch, location_fun) do
+    cyclical_date_to_iso_days(cycle, year, month, day, epoch, location_fun)
   end
 
   # Original version in which the month number doesnt change for
@@ -179,12 +179,12 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc false
-  def alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch, location_fun) do
+  def alt_cyclical_date_to_iso_days(cycle, year, month, leap_month?, day, epoch, location_fun) do
     mid_year = mid_year(cycle, year, epoch)
     new_year = new_year_on_or_before(mid_year, location_fun)
 
     p = new_moon_on_or_after(new_year + (month - 1) * 29, location_fun)
-    d = alt_chinese_date_from_iso_days(p, epoch, location_fun)
+    d = alt_cyclical_date_from_iso_days(p, epoch, location_fun)
 
     prior_new_moon =
       if month == month(d) && leap_month? == leap_month?(d) do
@@ -197,20 +197,20 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc false
-  def alt_chinese_date_to_iso_days({cycle, year, month, leap_month?, day}, epoch, location_fun) do
-    alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day, epoch, location_fun)
+  def alt_cyclical_date_to_iso_days({cycle, year, month, leap_month?, day}, epoch, location_fun) do
+    alt_cyclical_date_to_iso_days(cycle, year, month, leap_month?, day, epoch, location_fun)
   end
 
   # Here we return months that monotonically increase
   # from 1 to 12 (or 13 in a leap year).
   def date_from_iso_days(iso_days, epoch, location_fun) do
-    {cycle, year, month, day} = chinese_date_from_iso_days(iso_days, epoch, location_fun)
+    {cycle, year, month, day} = cyclical_date_from_iso_days(iso_days, epoch, location_fun)
     elapsed_years = elapsed_years(cycle, year)
 
     {elapsed_years, month, day}
   end
 
-  def chinese_date_from_iso_days(iso_days, epoch, location_fun) do
+  def cyclical_date_from_iso_days(iso_days, epoch, location_fun) do
     new_year = new_year_on_or_before(iso_days, location_fun)
     start_of_month = new_moon_before(iso_days + 1, location_fun)
 
@@ -231,7 +231,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc false
-  def alt_chinese_date_from_iso_days(iso_days, epoch, location_fun) do
+  def alt_cyclical_date_from_iso_days(iso_days, epoch, location_fun) do
     {month, start_of_month, leap_month?} = month_and_leap(iso_days, location_fun)
 
     elapsed_years = floor(1.5 - (month / 12) + ((iso_days - epoch) / Time.mean_tropical_year()))
