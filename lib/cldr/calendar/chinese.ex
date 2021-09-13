@@ -31,6 +31,29 @@ defmodule Cldr.Calendar.Chinese do
   alias Cldr.Calendar.Lunisolar
 
   @doc """
+  Returns the gregorian date of the
+  dragon festival (5th day of 5th lunar month)
+  for a given gregorian year.
+
+  ## Example
+
+      iex> Cldr.Calendar.Chinese.dragon_festival_for_gregorian_year(2021)
+      ~D[2021-06-14]
+
+  """
+  @dragon_month 5
+  @dragon_day 5
+
+  @spec dragon_festival_for_gregorian_year(Calendar.year()) :: Date.t()
+  def dragon_festival_for_gregorian_year(year) when is_integer(year) do
+    mid_year = Calendar.ISO.date_to_iso_days(year, 7, 1)
+    {cycle, year, _month, _day} = chinese_date_from_iso_days(mid_year)
+    dragon_festival = alt_chinese_date_to_iso_days(cycle, year, @dragon_month, false, @dragon_day)
+    {year, month, day} = Calendar.ISO.date_from_iso_days(dragon_festival)
+    Date.new!(year, month, day)
+  end
+
+  @doc """
   Returns if the given year is a leap
   year.
 
@@ -119,62 +142,81 @@ defmodule Cldr.Calendar.Chinese do
       false
 
   """
+  @spec leap_year?(Lunisolar.cycle(), Calendar.year()) :: boolean()
+
   def leap_year?(cycle, year) do
     cycle
     |> Lunisolar.elapsed_years(year)
     |> leap_year?()
   end
 
+  @doc """
+  Returns if the given cycle, year and
+  months is a leap month.
+
+  """
+  @spec leap_month?(Lunisolar.cycle(), Calendar.year(), Calendar.month()) :: boolean()
   def leap_month?(cycle, year, month) do
     Lunisolar.leap_month?(cycle, year, month, epoch(), &chinese_location/1)
   end
 
+  @doc false
   def cycle_and_year(iso_days) do
     Lunisolar.cycle_and_year(iso_days)
   end
 
+  @doc false
   def elapsed_years({cycle, year}) do
     Lunisolar.elapsed_years(cycle, year)
   end
 
+  @doc false
   def elapsed_years(cycle, year) do
     Lunisolar.elapsed_years(cycle, year)
   end
 
+  @doc false
   def date_to_iso_days({year, month, day}) do
     date_to_iso_days(year, month, day)
   end
 
+  @doc false
   def date_to_iso_days(year, month, day) do
     Lunisolar.date_to_iso_days(year, month, day, epoch(), &chinese_location/1)
   end
 
+  @doc false
   def date_from_iso_days(iso_days) do
     Lunisolar.date_from_iso_days(iso_days, epoch(), &chinese_location/1)
   end
 
+  @doc false
   def cyclic_year(year, month, day) do
     Lunisolar.cyclic_year(year, month, day)
   end
 
+  @doc false
   def related_gregorian_year(year, month, day) do
     Lunisolar.related_gregorian_year(year, month, day, epoch(), &chinese_location/1)
   end
 
+  @doc false
   def month_of_year(year, month, day) do
     Lunisolar.month_of_year(year, month, day, epoch(), &chinese_location/1)
   end
 
+  @doc false
   def new_moon_on_or_after(iso_days) do
     Lunisolar.new_moon_on_or_after(iso_days, &chinese_location/1)
   end
 
+  @doc false
   def new_moon_before(iso_days) do
     Lunisolar.new_moon_before(iso_days, &chinese_location/1)
   end
 
   # Since the Chinese calendar is a lunisolar
-  # calendar, a refernce longitude is required
+  # calendar, a reference longitude is required
   # in order to calculate sunset and sunrise.
   #
   # Prior to 1929, the longitude of Beijing was
@@ -184,6 +226,7 @@ defmodule Cldr.Calendar.Chinese do
   @beijing_local_offset Astro.Time.hours_to_days(1397 / 180)
   @china_standard_offset Astro.Time.hours_to_days(8)
 
+  @doc false
   @spec chinese_location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
   def chinese_location(iso_days) do
     {year, _month, _day} = Cldr.Calendar.Gregorian.date_from_iso_days(trunc(iso_days))

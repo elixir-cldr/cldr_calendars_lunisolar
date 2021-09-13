@@ -10,6 +10,9 @@ defmodule Cldr.Calendar.Lunisolar do
 
   alias Astro.{Time, Solar, Lunar}
 
+  @typedoc "A sexigesimal cycle number"
+  @type cycle :: pos_integer()
+
   # Winter season in degrees
   @winter 270
 
@@ -323,19 +326,23 @@ defmodule Cldr.Calendar.Lunisolar do
 
   @doc """
   Return moment (Beijing time) of the first date on or after
-  iso_days, date, (Beijing time) when the solar longitude
-  will be 'lam' degrees.
+  `iso_days` (Beijing time) when the solar longitude
+  will be 'lambda' degrees.
 
   """
+  @spec solar_longitude_on_or_after(Astro.angle(), number(), function()) :: Time.time()
+
   def solar_longitude_on_or_after(lambda, iso_days, location_fun) do
-    d = Time.universal_from_standard(iso_days, location(iso_days, location_fun))
+    {_lat, _lng, _alt, offset} = location_fun.(iso_days)
+    d = Time.universal_from_standard(iso_days, offset)
     t = Solar.solar_longitude_after(lambda, d)
+
     Time.standard_from_universal(t, location_fun.(t))
   end
 
   @doc """
   Return last Chinese major solar term (zhongqi) before
-  iso_days, date.
+  `iso_days`.
 
   """
   def current_major_solar_term(iso_days, location_fun) do

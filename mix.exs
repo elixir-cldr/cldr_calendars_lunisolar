@@ -55,13 +55,15 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
       {:ex_cldr_calendars, path: "../cldr_calendars", override: true},
       {:astro, path: "../astro"},
       {:stream_data, "~> 0.4", only: :test, optional: true},
-      {:ex_doc, "~> 0.19", only: [:release, :dev], runtime: false, optional: true}
+      {:ex_doc, "~> 0.19", only: [:release, :dev], runtime: false, optional: true},
+      {:dialyxir, "~> 1.0.0-rc", only: [:dev], runtime: false}
     ]
   end
 
   def links do
     %{
-      "GitHub" => "https://github.com/elixir-cldr/cldr_calendars_lunisolar",
+      "GitHub" =>
+        "https://github.com/elixir-cldr/cldr_calendars_lunisolar",
       "Readme" =>
         "https://github.com/elixir-cldr/cldr_calendars_lunisolar/blob/v#{@version}/README.md",
       "Changelog" =>
