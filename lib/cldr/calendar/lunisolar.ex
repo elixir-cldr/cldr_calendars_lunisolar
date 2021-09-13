@@ -325,8 +325,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return moment (Beijing time) of the first date on or after
-  `iso_days` (Beijing time) when the solar longitude
+  Return moment at `location` of the first date on or after
+  `iso_days` when the solar longitude
   will be 'lambda' degrees.
 
   """
@@ -353,7 +353,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return moment (in Beijing) of the first Chinese major
+  Return moment at `location` of the first major
   solar term (zhongqi) on or after `iso_days`.  The
   major terms begin when the sun's longitude is a
   multiple of 30 degrees.
@@ -366,7 +366,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return last Chinese minor solar term (jieqi) before `iso_days`.
+  Return last minor solar term (jieqi) before `iso_days`.
   """
   def current_minor_solar_term(iso_days, location_fun) do
     {_lat, _lng, _alt, offset} = location_fun.(iso_days)
@@ -376,7 +376,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return moment (in Beijing) of the first Chinese minor solar
+  Return moment at `location` of the first minor solar
   term (jieqi) on or after `iso_days`.  The minor terms
   begin when the sun's longitude is an odd multiple of 15 degrees.
 
@@ -389,12 +389,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return `iso_day` (Beijing) of first new moon before `iso_days`.
-
-  ## Example
-
-      iex> Cldr.Calendar.Chinese.new_moon_before(-962734 + 1)
-      -962734
+  Return `iso_day` at `location` of first new moon
+  before `iso_days`.
 
   """
   def new_moon_before(iso_days, location_fun) do
@@ -409,13 +405,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return `iso_day` (Beijing) of first new moon on or after
+  Return `iso_day` at `location` of first new moon on or after
   `iso_days`.
-
-  ## Example
-
-      iex> Cldr.Calendar.Chinese.new_moon_on_or_after(-962734)
-      -962734
 
   """
   def new_moon_on_or_after(iso_days, location_fun) do
@@ -430,8 +421,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return `true` if Chinese lunar month starting on `iso_days`
-  has no major solar term.
+  Return `true` if lunar month starting on `iso_days`
+  at `location` has no major solar term.
 
   """
   def no_major_solar_term?(iso_days, location_fun) do
@@ -441,7 +432,7 @@ defmodule Cldr.Calendar.Lunisolar do
 
   @doc """
   Return Universal time of (clock) midnight at start of `iso_days`,
-  in China.
+  at `location`.
 
   """
   def midnight_in_location(iso_days, location_fun) do
@@ -450,8 +441,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return iso_days, in the Chinese zone, of winter solstice
-  on or before iso_days.
+  Return iso_days, in the `location` zone, of winter solstice
+  on or before `iso_days`.
 
   """
   def december_solstice_on_or_before(iso_days, location_fun) do
@@ -460,7 +451,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return `iso_day` of Chinese New Year in sui
+  Return `iso_day` of Lunar New Year in sui
   (period from solstice to solstice)
   containing `iso_days`.
 
@@ -483,8 +474,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return `iso_day` of Chinese New Year on or
-  before `iso_days`.
+  Return `iso_day` of Lunar New Year on or
+  before `iso_days` at `location`.
 
   """
   def new_year_on_or_before(iso_days, location_fun) do
@@ -498,8 +489,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return iso_days of Chinese New Year in Gregorian
-  year.
+  Return iso_days of Lunar New Year at `location` for a
+  Gregorian year.
 
   """
   def chinese_new_year_for_gregorian_year(gregorian_year, location_fun) do
@@ -508,9 +499,9 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return True if there is a Chinese leap month on or after lunar
-  month starting on fixed day, m_prime and at or before
-  lunar month starting at iso_days, m.
+  Return `true` if there is a Lunar leap month on or after lunar
+  month starting on `m_prime` and at or before
+  lunar month starting at `m`.
 
   """
   def is_prior_leap_month?(m_prime, m, location_fun) do
@@ -520,7 +511,7 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return the name of the Chinese
+  Return the name of the Lunar
   sexagesimal cycle.
 
   """
@@ -550,8 +541,8 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc """
-  Return the number of names from Chinese name c_name1 to the
-  next occurrence of Chinese name c_name2.
+  Return the number of names from Lunar name c_name1 to the
+  next occurrence of Lunar name c_name2.
 
   """
   def name_difference(c_name1, c_name2) do
@@ -584,7 +575,7 @@ defmodule Cldr.Calendar.Lunisolar do
   @day_name_epoch 45
 
   @doc """
-  Return Chinese sexagesimal name for date, date.
+  Return sexagesimal name for date, date.
   """
   def day_name(date) do
     stem_and_branch(date - @day_name_epoch)
