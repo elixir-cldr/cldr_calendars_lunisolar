@@ -1,8 +1,6 @@
 defmodule Cldr.Calendar.Chinese.Test do
   use ExUnit.Case
 
-  doctest Cldr.Calendar.Chinese
-
   test "rollover of years" do
     # First day of the 15 year of 78th cycle. Also a leap year.
     t = Cldr.Calendar.Gregorian.date_to_iso_days(1998, 1, 28)
