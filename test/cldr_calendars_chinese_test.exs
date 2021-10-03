@@ -1,5 +1,5 @@
 defmodule Cldr.Calendar.Chinese.Test do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   test "rollover of years" do
     # First day of the 15 year of 78th cycle. Also a leap year.
