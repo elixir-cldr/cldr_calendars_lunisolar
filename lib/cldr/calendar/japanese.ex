@@ -156,6 +156,11 @@ defmodule Cldr.Calendar.Japanese do
     Lunisolar.cyclic_year(year, month, day)
   end
 
+  def calendar_year(year, month, day) do
+    {year, _era} = year_of_era(year, month, day)
+    year
+  end
+
   def related_gregorian_year(year, month, day) do
     Lunisolar.related_gregorian_year(year, month, day, epoch(), &japanese_location/1)
   end

@@ -52,11 +52,12 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   defp deps do
     [
-      {:ex_cldr_calendars, path: "../cldr_calendars", override: true},
-      {:astro, path: "../astro"},
+      {:ex_cldr_calendars, "~> 1.17-rc"},
+      {:ex_cldr_dates_times, "~> 2.10-rc", optional: true, only: [:dev, :test]},
+      {:astro, "~> 0.8"},
       {:stream_data, "~> 0.4", only: :test, optional: true},
       {:ex_doc, "~> 0.19", only: [:release, :dev], runtime: false, optional: true},
-      {:dialyxir, "~> 1.0.0-rc", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
 
