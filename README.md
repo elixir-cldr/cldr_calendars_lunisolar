@@ -2,13 +2,19 @@
 
 This library implements the Chinese, Japanese and Korean lunisolar calendars.
 
+## Chinese Calendar
+
 From [wikipedia](https://en.wikipedia.org/wiki/Chinese_calendar):
 
 The traditional Chinese calendar (officially known as the Agricultural Calendar [農曆; 农历; Nónglì; 'farming calendar'], Former Calendar [舊曆; 旧历; Jiùlì], Traditional Calendar [老曆; 老历; Lǎolì] or Yin Calendar [陰曆; 阴历; Yīnlì; 'yin calendar']), is a lunisolar calendar which reckons years, months and days according to astronomical phenomena. In China it is defined by the Chinese national standard GB/T 33661–2017, "Calculation and promulgation of the Chinese calendar", issued by the Standardisation Administration of China on May 12, 2017.
 
 Although modern-day China uses the Gregorian calendar, the traditional Chinese calendar governs holidays—such as the Chinese New Year and Lantern Festival—in both China and in overseas Chinese communities. It also gives the traditional Chinese nomenclature of dates within a year, which people use for selecting auspicious days for weddings, funerals, moving, or starting a business.
 
-The evening state-run news program Xinwen Lianbo in the P.R.C. continues to announce the month and date in both the Gregorian and the traditional lunisolar calendar.
+## Japanese Calendar
+
+
+## Korean Calendar
+
 
 ## Usage
 
@@ -55,14 +61,14 @@ This library is part of the [CLDR](https://cldr.unicode.org)-based libraries for
 
 ## Installation
 
-The package can be installed by adding `cldr_calendars_coptic` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `cldr_calendars_lunisolar` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:cldr_calendars_chinesec, "~> 0.1.0"}
+    {:cldr_calendars_lunisolar, "~> 0.1.0"}
   ]
 end
 ```
-Documentation can be found at [https://hexdocs.pm/cldr_calendars_chinese](https://hexdocs.pm/cldr_calendars_chinese).
+Documentation can be found at [https://hexdocs.pm/cldr_calendars_lunisolar](https://hexdocs.pm/cldr_calendars_lunisolar).
 

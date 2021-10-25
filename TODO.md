@@ -10,13 +10,9 @@
 
 * [X] Tests for `year/1`
 
-* Review and update readme
+* [X] Generalise `location` so we can also deliver Japanese, Korean and Vietnamese calendars. Pass a location function as a parameter.
 
-* Update Inspect protocol output
-
-* Update Sigil_D and Sigil_U parsers
-
-* Generalise `location` so we can also deliver Japanese, Korean and Vietnamese calendars. Pass a location function as a parameter.
+* [ ] Review and update readme
 
 * `plus` for `:months` needs to be implemented
 
