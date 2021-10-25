@@ -15,7 +15,7 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
       package: package(),
       elixirc_paths: elixirc_paths(Mix.env()),
       dialyzer: [
-        plt_add_apps: ~w(mix)a,
+        plt_add_apps: ~w(mix ex_cldr_currencies ex_cldr_dates_times ex_cldr_numbers)a,
         ignore_warnings: ".dialyzer_ignore_warnings"
       ]
     ]
