@@ -23,14 +23,14 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   def description do
     """
-    Implementation of Lunisolar Chinese and Japanese calendars for Elixir
+    Implementation of Lunisolar Chinese, Japanese and Korean calendars for Elixir
     """
   end
 
   defp package do
     [
       maintainers: ["Kip Cole"],
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       logo: "logo.png",
       links: links(),
       files: [
@@ -52,8 +52,8 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   defp deps do
     [
-      {:ex_cldr_calendars, "~> 1.17-rc"},
-      {:ex_cldr_dates_times, "~> 2.10-rc", optional: true, only: [:dev, :test]},
+      {:ex_cldr_calendars, "~> 1.17"},
+      {:ex_cldr_dates_times, "~> 2.10", optional: true, only: [:dev, :test]},
 
       {:astro, "~> 0.8"},
       {:stream_data, "~> 0.4", only: :test, optional: true},
