@@ -6,13 +6,6 @@ defmodule Cldr.Calendar.Chinese.RoundTrip.Test do
 
   alias Cldr.Calendar.Chinese
 
-  # property "Chinese Date Round Trip" do
-  #   check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
-  #     chinese_date = Chinese.chinese_date_from_iso_days(iso_days)
-  #     assert Chinese.chinese_date_to_iso_days(chinese_date) == iso_days
-  #   end
-  # end
-
   property "Chinese Date Round Trip" do
     check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
       chinese_date = Chinese.chinese_date_from_iso_days(iso_days)

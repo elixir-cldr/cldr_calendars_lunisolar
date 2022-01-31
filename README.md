@@ -1,20 +1,8 @@
 # Lunisolar Calendars
 
-This library implements the Chinese, Japanese and Korean lunisolar calendars.
+This library implements the Chinese, Japanese and Korean lunisolar calendars. Lunisolar calendars use the lunar cycle to define months but the solar cycle to define years. In reconciling these two cycles, occassionally one of the lunar months is extended to bring the cycles into alignment. Since the number of months in a year does not change (its always 12), the extended month is called a "leap month".
 
-## Chinese Calendar
-
-From [wikipedia](https://en.wikipedia.org/wiki/Chinese_calendar):
-
-The traditional Chinese calendar (officially known as the Agricultural Calendar [農曆; 农历; Nónglì; 'farming calendar'], Former Calendar [舊曆; 旧历; Jiùlì], Traditional Calendar [老曆; 老历; Lǎolì] or Yin Calendar [陰曆; 阴历; Yīnlì; 'yin calendar']), is a lunisolar calendar which reckons years, months and days according to astronomical phenomena. In China it is defined by the Chinese national standard GB/T 33661–2017, "Calculation and promulgation of the Chinese calendar", issued by the Standardisation Administration of China on May 12, 2017.
-
-Although modern-day China uses the Gregorian calendar, the traditional Chinese calendar governs holidays—such as the Chinese New Year and Lantern Festival—in both China and in overseas Chinese communities. It also gives the traditional Chinese nomenclature of dates within a year, which people use for selecting auspicious days for weddings, funerals, moving, or starting a business.
-
-## Japanese Calendar
-
-
-## Korean Calendar
-
+The traditional Chinese, Japanese and Korean calendars all use the same astronomical principles with the only difference being the reference point from which the observations are made. Today, the Chinese calendar uses Beijing as the reference, the Japanese calendar uses Tokyo and the Korean calendar uses Seoul.
 
 ## Usage
 
@@ -22,7 +10,7 @@ Although modern-day China uses the Gregorian calendar, the traditional Chinese c
 
 For Elixir version 1.10 and later `Sigil_D` supports user-defined calendars:
 ```
-iex> ~D[1736-03-30 Cldr.Calendar.Coptic]
+iex> ~D[1736-03-30 Cldr.Calendar.Chinese]
 ~D[1736-03-30 Cldr.Calendar.Coptic]
 ```
 

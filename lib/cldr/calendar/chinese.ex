@@ -32,6 +32,27 @@ defmodule Cldr.Calendar.Chinese do
 
   @doc """
   Returns the gregorian date of the
+  Chinese New Year for a given gregorian year.
+
+  ## Example
+
+      iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2021)
+      ~D[2021-02-12]
+
+      iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2022)
+      ~D[2022-02-01]
+
+      iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2023)
+      ~D[2023-01-22]
+
+  """
+  @spec new_year_for_gregorian_year(Calendar.year()) :: Date.t()
+  def new_year_for_gregorian_year(gregorian_year) do
+    gregorian_date_for_chinese(gregorian_year, 1, 1)
+  end
+
+  @doc """
+  Returns the gregorian date of the
   dragon festival (5th day of 5th lunar month)
   for a given gregorian year.
 
@@ -40,16 +61,26 @@ defmodule Cldr.Calendar.Chinese do
       iex> Cldr.Calendar.Chinese.dragon_festival_for_gregorian_year(2021)
       ~D[2021-06-14]
 
+      iex> Cldr.Calendar.Chinese.dragon_festival_for_gregorian_year(2022)
+      ~D[2022-06-03]
+
+      iex> Cldr.Calendar.Chinese.dragon_festival_for_gregorian_year(2023)
+      ~D[2023-06-22]
+
   """
   @dragon_month 5
   @dragon_day 5
 
   @spec dragon_festival_for_gregorian_year(Calendar.year()) :: Date.t()
-  def dragon_festival_for_gregorian_year(year) when is_integer(year) do
-    mid_year = Calendar.ISO.date_to_iso_days(year, 7, 1)
-    {cycle, year, _month, _day} = chinese_date_from_iso_days(mid_year)
-    dragon_festival = alt_chinese_date_to_iso_days(cycle, year, @dragon_month, false, @dragon_day)
-    {year, month, day} = Calendar.ISO.date_from_iso_days(dragon_festival)
+  def dragon_festival_for_gregorian_year(gregorian_year) when is_integer(gregorian_year) do
+    gregorian_date_for_chinese(gregorian_year, @dragon_month, @dragon_day)
+  end
+
+  defp gregorian_date_for_chinese(gregorian_year, chinese_month, chinese_day, leap_month? \\ false) do
+    mid_year = Calendar.ISO.date_to_iso_days(gregorian_year, 7, 1)
+    {cycle, chinese_year, _month, _day} = chinese_date_from_iso_days(mid_year)
+    iso_days = alt_chinese_date_to_iso_days(cycle, chinese_year, chinese_month, leap_month?, chinese_day)
+    {year, month, day} = Calendar.ISO.date_from_iso_days(iso_days)
     Date.new!(year, month, day)
   end
 

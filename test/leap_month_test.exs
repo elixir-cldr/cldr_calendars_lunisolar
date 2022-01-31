@@ -9,8 +9,7 @@ defmodule Cldr.Calendar.Chinese.LeapMonth.Test do
   property "Chinese Leap Month" do
     check all(iso_days <- Chinese.DateGenerator.generate_iso_days(), max_runs: @max_runs) do
       {cycle_a, year_a, _month, leap_month?, day_a} = Chinese.alt_chinese_date_from_iso_days(iso_days)
-      date = Chinese.chinese_date_from_iso_days(iso_days)
-      {cycle, year, month, day} = date
+      {cycle, year, month, day} = Chinese.chinese_date_from_iso_days(iso_days)
 
       assert cycle_a == cycle
       assert year_a == year
