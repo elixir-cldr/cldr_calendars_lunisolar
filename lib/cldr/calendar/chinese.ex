@@ -11,9 +11,6 @@ defmodule Cldr.Calendar.Chinese do
   can vary between 29 and 30 days and a normal year can
   have 353, 354, or 355 days.
 
-  Wikipedia's Japanese article on the [eras of the Japanese calendar](https://translate.google.com/translate?sl=auto&tl=en&u=https://ja.wikipedia.org/wiki/元号一覧_%28日本%29)
-  contains the reference for the eras in the CLDR data use
-  in this calendar implementation.
 
   """
   use Cldr.Calendar.Behaviour,
