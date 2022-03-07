@@ -166,7 +166,7 @@ defmodule Cldr.Calendar.Korean do
   end
 
   # Since the Korean (dangi) calendar is a lunisolar
-  # calendar, a refernce longitude is required
+  # calendar, a reference longitude is required
   # in order to calculate sunset and sunrise.
 
   @spec korean_location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}

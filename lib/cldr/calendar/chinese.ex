@@ -20,7 +20,7 @@ defmodule Cldr.Calendar.Chinese do
     epoch: ~D[-2636-02-15],
     cldr_calendar_type: :chinese
 
-  # Alternative epoch starting from the reign of Emporer Huangdi: ~D[-2696-01-01)
+  # Alternative epoch starting from the reign of Emperor Huangdi: ~D[-2696-01-01)
 
   import Astro.Math, only: [
     angle: 3,
