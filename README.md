@@ -1,6 +1,6 @@
 # Lunisolar Calendars
 
-This library implements the Chinese, Japanese and Korean lunisolar calendars. Lunisolar calendars use the lunar cycle to define months but the solar cycle to define years. In reconciling these two cycles, occassionally one of the lunar months is extended to bring the cycles into alignment. Since the number of months in a year does not change (its always 12), the extended month is called a "leap month".
+This library implements the Chinese, Japanese and Korean lunisolar calendars. Lunisolar calendars use the lunar cycle to define months but the solar cycle to define years. In reconciling these two cycles, occasionally one of the lunar months is extended to bring the cycles into alignment. Since the number of months in a year does not change (its always 12), the extended month is called a "leap month".
 
 The traditional Chinese, Japanese and Korean calendars all use the same astronomical principles with the only difference being the reference point from which the observations are made. Today, the Chinese calendar uses Beijing as the reference, the Japanese calendar uses Tokyo and the Korean calendar uses Seoul.
 

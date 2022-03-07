@@ -23,7 +23,7 @@ defmodule Cldr.Calendar.Lunisolar do
   # the following year (in days)
   @one_solar_year_later 370
 
-  # This is the nummber of months
+  # This is the number of months
   # in the calendar (not the number
   # of new moons)
   @calendar_months_in_year 12
@@ -163,7 +163,7 @@ defmodule Cldr.Calendar.Lunisolar do
     cyclical_date_to_iso_days(cycle, year, month, day, epoch, location_fun)
   end
 
-  # Original version in which the month number doesnt change for
+  # Original version in which the month number doesn't change for
   # a leap month (but the leap_month? flag is set for the second
   # month with the same number)
 

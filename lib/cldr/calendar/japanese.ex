@@ -178,7 +178,7 @@ defmodule Cldr.Calendar.Japanese do
   end
 
   # Since the Japanese calendar is a lunisolar
-  # calendar, a refernce longitude is required
+  # calendar, a reference longitude is required
   # in order to calculate sunset and sunrise.
   #
   # Prior to 1888, the longitude of Tokyo was
