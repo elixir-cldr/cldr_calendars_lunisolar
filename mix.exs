@@ -54,6 +54,7 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
     [
       #{:ex_cldr_calendars, "~> 1.22"},
       {:ex_cldr_calendars, path: "../cldr_calendars", override: true},
+
       {:ex_cldr, path: "../cldr43", override: true},
       {:ex_cldr_numbers, path: "../cldr_numbers", override: true},
 
