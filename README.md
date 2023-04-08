@@ -11,8 +11,23 @@ The traditional Chinese, Japanese and Korean calendars all use the same astronom
 For Elixir version 1.10 and later `Sigil_D` supports user-defined calendars:
 ```
 iex> ~D[1736-03-30 Cldr.Calendar.Chinese]
-~D[1736-03-30 Cldr.Calendar.Coptic]
+~D[1736-03-30 Cldr.Calendar.Chinese]
 ```
+
+## Lunisolar Date representation
+
+Lunisolar calendars have a leap year when the lunar cycle falls too far out of alignment with the solar year. In those years, like Gregorian 2023, a leap month is inserted into the calendar. In 2023, the leap month is month 2 so the sequence of months goes "month 1" -> "month 2" -> "leap month 2" -> "month 3". The Elixir date structures can't accomodate this kind of annotation so the lunisolar calendar implementations in the library adopt a different approach. The month in the date struct is an *ordinal* month (ie considered the nth month) not the *cardinal* month as in other calendars.
+
+This means that the month numbers in a lunisolar leap year are:
+
+  | Calendar month                 | Date struct month        | Example for Gregorian 2023 in Korean calendar 4356 using Date.to_string/2
+  | :----------------------------: | :----------------------: | :------------------------------------------------------------------------
+  | 1                              | 1                        | "4356. 1. 1."
+  | 2                              | 2                        | "4356. 2. 1."
+  | leap 2                         | 3                        | "4356. 윤2. 1."
+  | 3                              | 4                        | "4356. 3. 1."
+  | 4                              | 5                        | "4356. 4. 1."
+
 
 ## Localization
 
@@ -32,6 +47,7 @@ iex> Cldr.Calendar.localize(date, :day_of_week, locale: "ar-EG")
 
 iex> Cldr.Calendar.localize(date, :month, locale: "ar-EG")
 "هاتور"
+
 ```
 
 ## Relationship to other libraries
@@ -54,7 +70,7 @@ The package can be installed by adding `cldr_calendars_lunisolar` to your list o
 ```elixir
 def deps do
   [
-    {:cldr_calendars_lunisolar, "~> 0.1.0"}
+    {:cldr_calendars_lunisolar, "~> 1.0"}
   ]
 end
 ```

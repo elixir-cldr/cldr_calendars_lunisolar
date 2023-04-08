@@ -1,5 +1,12 @@
 defmodule Cldr.Calendar.Lunisolar do
-  @moduledoc false
+  @moduledoc """
+  Template for building lunisolar calendars.  See
+  `Cldr.Calendar.Chinese` for an example implementation.
+
+  The functions in this module should only be called
+  from lunisolar implementations.
+
+  """
 
   import Astro.Math, only: [
     mod: 2,

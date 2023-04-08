@@ -172,7 +172,7 @@ defmodule Cldr.Calendar.Chinese do
       false
 
   """
-  @spec leap_year?(Lunisolar.cycle(), Calendar.year()) :: boolean()
+  @spec leap_year?(cycle :: Lunisolar.cycle(), year :: Calendar.year()) :: boolean()
 
   def leap_year?(cycle, year) do
     cycle
@@ -185,7 +185,7 @@ defmodule Cldr.Calendar.Chinese do
   months is a leap month.
 
   """
-  @spec leap_month?(Lunisolar.cycle(), Calendar.year(), Calendar.month()) :: boolean()
+  @spec leap_month?(cycle :: Lunisolar.cycle(), year :: Calendar.year(), Calendar.month()) :: boolean()
   def leap_month?(cycle, year, month) do
     Lunisolar.leap_month?(cycle, year, month, epoch(), &chinese_location/1)
   end
