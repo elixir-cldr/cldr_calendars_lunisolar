@@ -1,13 +1,13 @@
 defmodule Cldr.Calendars.Lunisolar.MixProject do
   use Mix.Project
 
-  @version "1.0.0-beta.1"
+  @version "1.0.0"
 
   def project do
     [
       app: :ex_cldr_calendars_lunisolar,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       source_url: "https://github.com/elixir-cldr/cldr_calendars_lunisolar",
@@ -52,7 +52,11 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   defp deps do
     [
-      {:ex_cldr_calendars, "~> 1.17"},
+      #{:ex_cldr_calendars, "~> 1.22"},
+      {:ex_cldr_calendars, path: "../cldr_calendars", override: true},
+      {:ex_cldr, path: "../cldr43", override: true},
+      {:ex_cldr_numbers, path: "../cldr_numbers", override: true},
+
       {:ex_cldr_dates_times, "~> 2.10", optional: true, only: [:dev, :test]},
 
       {:astro, "~> 0.9 or ~> 1.0"},

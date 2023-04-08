@@ -14,7 +14,9 @@ defmodule Cldr.Calendar.Korean do
   """
   use Cldr.Calendar.Behaviour,
     epoch: ~D[-2332-02-15],
-    cldr_calendar_type: :dangi
+    cldr_calendar_type: :dangi,
+    months_in_normal_year: 12,
+    months_in_leap_year: 13
 
   import Astro.Math, only: [
     angle: 3,

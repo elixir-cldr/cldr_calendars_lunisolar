@@ -558,7 +558,7 @@ defmodule Cldr.Calendar.Lunisolar do
     1 + mod(stem_difference - 1 + 25 * (branch_difference - stem_difference), @years_in_cycle)
   end
 
-  # CHECK THIS was rd(45) -> might need to be +/- 365 since our
+  # CHECK THIS was iso_day(45) -> might need to be +/- 365 since our
   # epoch is different
   @month_name_epoch 57
 
@@ -570,7 +570,7 @@ defmodule Cldr.Calendar.Lunisolar do
     stem_and_branch(elapsed_months - @month_name_epoch)
   end
 
-  # CHECK THIS was rd(45) -> might need to be +/- 365 since our
+  # CHECK THIS was iso_day(45) -> might need to be +/- 365 since our
   # epoch is different
   @day_name_epoch 45
 

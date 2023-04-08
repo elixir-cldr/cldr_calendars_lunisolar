@@ -15,7 +15,9 @@ defmodule Cldr.Calendar.Chinese do
   """
   use Cldr.Calendar.Behaviour,
     epoch: ~D[-2636-02-15],
-    cldr_calendar_type: :chinese
+    cldr_calendar_type: :chinese,
+    months_in_normal_year: 12,
+    months_in_leap_year: 13
 
   # Alternative epoch starting from the reign of Emperor Huangdi: ~D[-2696-01-01)
 
