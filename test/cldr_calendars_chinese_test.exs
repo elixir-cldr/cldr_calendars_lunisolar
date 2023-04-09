@@ -62,14 +62,10 @@ defmodule Cldr.Calendar.Chinese.Test do
     assert Date.convert!(~D[4660-13-01 Cldr.Calendar.Chinese], ISO) == ~D[2024-01-11]
   end
 
-  test "Localization of leap month for chinese and korean calendars" do
+  test "Localization of leap month for chinese, japanese and korean calendars" do
     assert "윤2월" = Cldr.Calendar.localize(~D[4356-03-01 Cldr.Calendar.Korean], :month, locale: :ko)
     assert "闰二月" = Cldr.Calendar.localize(~D[4660-03-01 Cldr.Calendar.Chinese], :month, locale: :zh)
+    assert "閏二月" = Cldr.Calendar.localize(~D[1379-03-01 Cldr.Calendar.LunarJapanese], :month, locale: :ja)
   end
 
-  test "Localization of leap month for japanese calendars" do
-    # Japanese calendar has no month_formats (surprising!)
-    # Perhaps in CLDR the :japanese calendar is intended to be gregorian?
-    assert "2月" = Cldr.Calendar.localize(~D[2023-03-01 Cldr.Calendar.Japanese], :month, locale: :ja)
-  end
 end

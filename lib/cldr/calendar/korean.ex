@@ -11,17 +11,25 @@ defmodule Cldr.Calendar.Korean do
   can vary between 29 and 30 days and a normal year can
   have 353, 354, or 355 days.
 
+  The default epoch for the Korean lunisolar calendar
+  is `~D[-2332-02-15]` which is the traditional year of
+  the founding of the first Korean nation. The epoch can
+  be changed by setting the `:korean_epoch` configuration
+  key in `config.exs`:
+
+      config :ex_cldr_calendars,
+        korean_epoch: ~D[-2332-02-15]
+
   """
   use Cldr.Calendar.Behaviour,
-    epoch: ~D[-2332-02-15],
+    epoch: Application.compile_env(:ex_cldr_calendars, :korean_epoch, ~D[-2332-02-15]),
     cldr_calendar_type: :dangi,
     months_in_normal_year: 12,
     months_in_leap_year: 13
 
   import Astro.Math, only: [
     angle: 3,
-    mt: 1,
-    # amod: 2
+    mt: 1
   ]
 
   alias Astro.Time

@@ -20,13 +20,13 @@ Lunisolar calendars have a leap year when the lunar cycle falls too far out of a
 
 This means that the month numbers in a lunisolar leap year are:
 
-  | Calendar month                 | Date struct month        | Example for Gregorian 2023 in Korean calendar 4356 using Date.to_string/2
-  | :----------------------------: | :----------------------: | :------------------------------------------------------------------------
-  | 1                              | 1                        | "4356. 1. 1."
-  | 2                              | 2                        | "4356. 2. 1."
-  | leap 2                         | 3                        | "4356. 윤2. 1."
-  | 3                              | 4                        | "4356. 3. 1."
-  | 4                              | 5                        | "4356. 4. 1."
+  | Calendar month | Date struct month | Example for Gregorian 2023 (Korean calendar 4356) using Date.to_string/2
+  | :------------: | :---------------: | :------------------------------------------------------------------------
+  | 1              | 1                 | "4356. 1. 1."
+  | 2              | 2                 | "4356. 2. 1."
+  | leap 2         | 3                 | "4356. 윤2. 1."
+  | 3              | 4                 | "4356. 3. 1."
+  | 4              | 5                 | "4356. 4. 1."
 
 
 ## Localization

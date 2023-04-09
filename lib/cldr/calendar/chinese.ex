@@ -11,15 +11,23 @@ defmodule Cldr.Calendar.Chinese do
   can vary between 29 and 30 days and a normal year can
   have 353, 354, or 355 days.
 
+  The default epoch for the Chinese lunisolar calendar
+  is `~D[-2636-02-15]` which traditional date of the first
+  use of the sexagesimal cycle. It can be changed by setting
+  the `:chinese_epoch` configuration key in `config.exs`:
+
+      # Alternative epoch starting from the reign of Emperor
+      # Huangdi
+      config :ex_cldr_calendars,
+        chinese_epoch: ~D[-2696-01-01]
 
   """
+
   use Cldr.Calendar.Behaviour,
-    epoch: ~D[-2636-02-15],
+    epoch:  Application.compile_env(:ex_cldr_calendars, :chinese_epoch, ~D[-2636-02-15]),
     cldr_calendar_type: :chinese,
     months_in_normal_year: 12,
     months_in_leap_year: 13
-
-  # Alternative epoch starting from the reign of Emperor Huangdi: ~D[-2696-01-01)
 
   import Astro.Math, only: [
     angle: 3,

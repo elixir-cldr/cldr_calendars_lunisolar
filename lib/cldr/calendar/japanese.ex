@@ -1,8 +1,14 @@
-defmodule Cldr.Calendar.Japanese do
+# Here to serialize the generation of the chinese and
+# lunar japanese calendars since they are both of the
+# CLDR calendar type :chinese and the code that generates the
+# era information gaurds on Code.ensure_loaded?/1
+require Cldr.Calendar.Chinese
+
+defmodule Cldr.Calendar.LunarJapanese do
   @moduledoc """
   Implementation of the Japanese lunisolar calendar.
 
-  In a ‘regular’ Japanese lunisolar calendar, one year
+  In a normal Japanese lunisolar calendar, one year
   is divided into 12 months, with one month corresponding
   to the time between two full moons.
 
@@ -15,10 +21,21 @@ defmodule Cldr.Calendar.Japanese do
   year of the [Taika era](https://en.wikipedia.org/wiki/Taika_(era))
   which is recorded as the first imperial era.
 
+  The epoch can be changed by setting the `:lunar_japanese_epoch`
+  configuration key in `config.exs`:
+
+      # Alternative epoch starting from the reign of Emperor
+      # Huangdi
+      config :ex_cldr_calendars,
+        lunar_japanese_epoch: ~D[0645-07-20]
+
   """
+
   use Cldr.Calendar.Behaviour,
-    epoch: ~D[0001-01-01],
-    cldr_calendar_type: :japanese
+    epoch: Application.compile_env(:ex_cldr_calendars, :lunar_japanese_epoch, ~D[0645-07-20]),
+    cldr_calendar_type: :chinese,
+    months_in_normal_year: 12,
+    months_in_leap_year: 13
 
   import Astro.Math, only: [
     angle: 3,
