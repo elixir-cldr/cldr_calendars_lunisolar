@@ -101,15 +101,21 @@ defmodule Cldr.Calendar.Lunisolar do
     end
   end
 
+  @doc false
   def cyclic_year(year, _month, _day) do
     {_cycle, year} =  cycle_and_year(year)
     year
   end
 
-  def month_of_year(year, month, day, epoch, location_fun) do
+  @doc false
+  def lunar_month_of_year(year, month, day, epoch, location_fun) do
     iso_days = date_to_iso_days(year, month, day, epoch, location_fun)
     {month, _start_of_month, leap_month?} = month_and_leap(iso_days, location_fun)
-    {month, leap_month?}
+
+    case {month, leap_month?} do
+      {month, true} -> {month, :leap}
+      {month, false} -> month
+    end
   end
 
   # year, month, day where month is in lunisolar month format of an integer between

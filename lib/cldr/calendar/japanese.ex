@@ -257,6 +257,109 @@ defmodule Cldr.Calendar.LunarJapanese do
     Lunisolar.leap_month(year, epoch(), &location/1)
   end
 
+  @doc """
+  Returns the year in the lunisolar sexigesimal 60-year
+  cycle.
+
+  Traditionally years are numbered only within the cycle
+  however in this implementation the year is an offset from
+  the epoch date. It can be converted to the current year in
+  the current cycle with this function.
+
+  The cycle year is commonly shown on lunisolar calendars and
+  it forms part of the traditional Chinese zodiac.
+
+  ### Arguments
+
+  * `date` which is any `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar, *or*
+
+  *`year` and `month` representing the calendar year and month.
+
+  ### Returns
+
+  * the integer year within the sexigesimal cycle of 60 years.
+
+  ### Examples
+
+      iex> Cldr.Calendar.LunarJapanese.cyclic_year(~D[1380-04-01 Cldr.Calendar.LunarJapanese])
+      60
+
+      iex> Cldr.Calendar.LunarJapanese.cyclic_year(~D[1381-01-01 Cldr.Calendar.LunarJapanese])
+      1
+
+      iex> Cldr.Calendar.LunarJapanese.cyclic_year(~D[1200-01-02 Cldr.Calendar.LunarJapanese])
+      60
+
+      iex> Cldr.Calendar.LunarJapanese.cyclic_year(~D[1260-01-01 Cldr.Calendar.LunarJapanese])
+      60
+
+  """
+  @spec cyclic_year(date :: Date.t()) :: Lunisolar.cycle()
+  def cyclic_year(%Date{year: year, month: month, calendar: __MODULE__}) do
+    cyclic_year(year, month)
+  end
+
+  def cyclic_year(year, month) do
+    Lunisolar.cyclic_year(year, month, 1)
+  end
+
+  @doc """
+  Returns the lunar month of the year for a given date or
+  year and month.
+
+  The lunar month number in the traditional lunisolar calendar is
+  between 1 and 12 with a leap month added when there are 13 new moons
+  between Winter solstices. This intercalary leap month is not
+  representable in its traditional form in the `t:Date.t/0` struct.
+
+  This function takes a date, or year and month, and returns either the
+  month number between 1 and 12 or a 2-tuple representing the leap month.
+  This 2-tuple looks like `{month_number, :leap}`.
+
+  The value returned from this function can be passed to `#{inspect __MODULE__}.new/3` to
+  define a date using traditional lunar months.
+
+  ### Arguments
+
+  * `date` which is any `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar, *or*
+
+  *`year` and `month` representing the calendar year and month.
+
+  ### Returns
+
+  * the lunar month as either an integer between 1 and 12 or a
+  tuple of the form `{lunar_month, :leap}`.
+
+  ### Examples
+
+      iex> Cldr.Calendar.LunarJapanese.lunar_month_of_year(~D[1379-02-01 Cldr.Calendar.LunarJapanese])
+      2
+
+      iex> Cldr.Calendar.LunarJapanese.lunar_month_of_year(~D[1379-03-01 Cldr.Calendar.LunarJapanese])
+      {2, :leap}
+
+      iex> Cldr.Calendar.LunarJapanese.lunar_month_of_year(~D[1379-04-01 Cldr.Calendar.LunarJapanese])
+      3
+
+  """
+  @spec lunar_month_of_year(date :: Date.t()) :: Lunisolar.lunar_month()
+  def lunar_month_of_year(%Date{year: year, month: month, calendar: __MODULE__}) do
+    lunar_month_of_year(year, month)
+  end
+
+  @spec lunar_month_of_year(year :: Calendar.year(), month :: Calendar.month()) :: Lunisolar.lunar_month()
+  def lunar_month_of_year(year, month) do
+    Lunisolar.lunar_month_of_year(year, month, 1, epoch(), &location/1)
+  end
+
+  # Compatibility with Cldr.Calendar.localize
+  @doc false
+  def month_of_year(year, month, _day) do
+    lunar_month_of_year(year, month)
+  end
+
   @doc false
   def cycle_and_year(iso_days) do
     Lunisolar.cycle_and_year(iso_days)
@@ -286,24 +389,14 @@ defmodule Cldr.Calendar.LunarJapanese do
   end
 
   @doc false
-  def cyclic_year(year, month, day) do
-    Lunisolar.cyclic_year(year, month, day)
+  def new_moon_on_or_after(iso_days) do
+    Lunisolar.new_moon_on_or_after(iso_days, &location/1)
   end
 
   # Is the calendar year the era year or not???
   def calendar_year(year, month, day) do
     {year, _era} = year_of_era(year, month, day)
     year
-  end
-
-  @doc false
-  def month_of_year(year, month, day) do
-    Lunisolar.month_of_year(year, month, day, epoch(), &location/1)
-  end
-
-  @doc false
-  def new_moon_on_or_after(iso_days) do
-    Lunisolar.new_moon_on_or_after(iso_days, &location/1)
   end
 
   @doc false
