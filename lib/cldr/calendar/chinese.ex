@@ -37,6 +37,49 @@ defmodule Cldr.Calendar.Chinese do
   alias Astro.Time
   alias Cldr.Calendar.Lunisolar
 
+  @doc """
+  Returns a `t:Date.t/0` in the `#{__MODULE__}` calendar
+  formed by a calendar year, a *cardinal* lunar month number
+  and a cardinal day number.
+
+  The lunar month number is that used in traditional lunisolar
+  calendar notation. It is either a number between 1 and 12
+  (the number of months in an ordinary year) or a leap month
+  specified by the 2-tuple `{month, :leap}`.
+
+  This function is therefore most useful for creating tradition
+  calendar dates for holidays and other events defined in
+  the lunisolar calendar.
+
+  ### Arguments
+
+  * `year` is any year in the `#{inspect __MODULE__} calendar.
+
+  * `lunar_month` is either a cardinal month number between 1 and 12 or
+    for a leap month the 2-tuple in the format `{month, :leap}`.
+
+  * `day` is any day number valid for `year` and `month`
+
+  ### Returns
+
+  * `{:ok, date}` or
+
+  * `{:error, reason}`
+
+  ### Examples
+
+      # Lunar new year
+      iex> Cldr.Calendar.Chinese.new(4660, 1, 1)
+      {:ok, ~D[4660-01-01 Cldr.Calendar.Chinese]}
+
+      # First day of leap month
+      iex> Cldr.Calendar.Chinese.new(4660, {3, :leap}, 1)
+      {:ok, ~D[4660-04-01 Cldr.Calendar.Chinese]}
+
+  """
+  @spec new(year :: Calendar.year, month :: Lunisolar.lunar_month(), day :: Calendar.day) ::
+    {:ok, Date.t()} | {:error, atom()}
+
   def new(year, month, day) do
     case Lunisolar.new(year, month, day, epoch(), &location/1) do
       {:error, reason} ->
@@ -53,6 +96,164 @@ defmodule Cldr.Calendar.Chinese do
       {:ok, date} -> date
       {:error, reason} -> raise ArgumentError, "cannot build date, reason: #{inspect(reason)}"
     end
+  end
+
+  @doc """
+  Returns a boolean indicating if the given year is a leap
+  year.
+
+  Leap years have 13 months. To determine if a year
+  is a leap year, calculate the number of new moons
+  between the 11th month in one year (i.e., the month
+  containing the Winter Solstice) and the 11th month
+  in the following year.
+
+  If there are 13 new moons from the start of the 11th
+  month in the first year to the start of the 11th
+  month in the second year, a leap month must be inserted.
+
+  In leap years, at least one month does not contain a
+  Principal Term. The first such month is the leap month.
+
+  The additional complexity is that a leap year is
+  calculated for the solar year, but the calendar
+  is managed in lunar years and months. Therefore when
+  a leap year is detected, the leap month could be in
+  the current lunar year or the next lunar year.
+
+  ### Arguments
+
+  * `date_or_year` is either an integer year number
+    or a `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar.
+
+  ### Returns
+
+  * A booelan indicating if the given year is a leap
+    year.
+
+  ### Examples
+
+      iex> Cldr.Calendar.Chinese.leap_year?(4660)
+      true
+
+      iex> Cldr.Calendar.Chinese.leap_year?(4661)
+      false
+
+  """
+  @spec leap_year?(date_or_year :: Calendar.year() | Date.t()) :: boolean()
+  @impl Calendar
+
+  def leap_year?(%{year: year, calendar: __MODULE}) do
+    leap_year?(year)
+  end
+
+  def leap_year?(year) do
+    Lunisolar.leap_year?(year, epoch(), &location/1)
+  end
+
+  @doc """
+  Returns a boolean indicating if the given year and month
+  is a leap month.
+
+  ### Arguements
+
+  * `year` is any year in the `#{inspect __MODULE__}` calendar.
+
+  * `month` is any ordinal month number in the `#{inspect __MODULE__}`
+    calendar.
+
+  ### Returns
+
+  * A booelan indicating if the given year and month is a leap
+    month.
+
+  ### Examples
+
+      iex> Cldr.Calendar.Chinese.leap_month?(4660, 1)
+      false
+
+      iex> Cldr.Calendar.Chinese.leap_month?(4660, 3)
+      true
+
+  """
+  @spec leap_month?(year :: Calendar.year(), month :: Calendar.month()) :: boolean()
+  def leap_month?(year, month) do
+    Lunisolar.leap_month?(year, month, epoch(), &location/1)
+  end
+
+  @doc false
+  # For testing only
+  def leap_month?(cycle, cyclic_year, month) do
+    cycle
+    |> Lunisolar.elapsed_years(cyclic_year)
+    |> leap_month?(month)
+  end
+
+  @doc """
+  Returns a boolean indicating if the given year and month
+  is a leap month.
+
+  ### Arguements
+
+  * `date` is any `t:Date.t/0` in the `#{inspect __MODULE__}` calendar.
+
+  ### Returns
+
+  * A booelan indicating if the given year and month is a leap
+    month.
+
+  ### Examples
+
+      iex> Cldr.Calendar.Chinese.leap_month?(~D[4660-01-01 Cldr.Calendar.Chinese])
+      false
+
+      iex> Cldr.Calendar.Chinese.leap_month?(~D[4660-03-29 Cldr.Calendar.Chinese])
+      true
+
+  """
+  @spec leap_month?(date :: Date.t()) :: boolean()
+  def leap_month?(%Date{calendar: __MODULE__} = date) do
+    leap_month?(date.year, date.month)
+  end
+
+  @doc """
+  Returns the ordinal month number of the leap
+  month for a year, or nil if there is no leap
+  month.
+
+  ### Arguments
+
+  * `date_or_year` is either an integer year number
+    or a `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar.
+
+  ### Returns
+
+  * either an ordinal month number or
+
+  * `nil` indicating there is no leap month in the
+    given year.
+
+  ### Examples
+
+      iex> Cldr.Calendar.Chinese.leap_month(4660)
+      3
+
+      iex> Cldr.Calendar.Chinese.leap_month(~D[4660-13-29 Cldr.Calendar.Chinese])
+      3
+
+      iex> Cldr.Calendar.Chinese.leap_month(4661)
+      nil
+
+  """
+  @spec leap_month(date_or_year :: Date.t() | Calendar.year()) :: Calendar.month() | nil
+  def leap_month(%Date{year: year, calendar: __MODULE__}) do
+    leap_month(year)
+  end
+
+  def leap_month(year) do
+    Lunisolar.leap_month(year, epoch(), &location/1)
   end
 
   @doc """
@@ -107,122 +308,6 @@ defmodule Cldr.Calendar.Chinese do
     iso_days = alt_chinese_date_to_iso_days(cycle, chinese_year, chinese_month, leap_month?, chinese_day)
     {year, month, day} = Calendar.ISO.date_from_iso_days(iso_days)
     Date.new!(year, month, day)
-  end
-
-  @doc """
-  Returns if the given year is a leap
-  year.
-
-  Leap years have 13 months. To determine if a year
-  is a leap year, calculate the number of new moons
-  between the 11th month in one year (i.e., the month
-  containing the Winter Solstice) and the 11th month
-  in the following year.
-
-  If there are 13 new moons from the start of the 11th
-  month in the first year to the start of the 11th
-  month in the second year, a leap month must be inserted.
-
-  In leap years, at least one month does not contain a
-  Principal Term. The first such month is the leap month.
-
-  The additional complexity is that a leap year is
-  calculated for the solar year, but the calendar
-  is managed in lunar years and months. Therefore when
-  a leap year is detected, the leap month could be in
-  the current lunar year or the next lunar year.
-
-  ## Examples
-
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 37)
-      true
-
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 38)
-      false
-
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 39)
-      false
-
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 40)
-      true
-
-      iex> Cldr.Calendar.Chinese.leap_year? Cldr.Calendar.Chinese.elapsed_years(78, 41)
-      false
-
-  """
-  @spec leap_year?(Calendar.year()) :: boolean()
-  @impl true
-
-  def leap_year?(%Date{calendar: __MODULE__} = date) do
-    leap_year?(date.year)
-  end
-
-  def leap_year?(year) do
-    Lunisolar.leap_year?(year, epoch(), &location/1)
-  end
-
-  @doc """
-  Returns if the given cycle and year is a leap
-  year.
-
-  Leap years have 13 months. To determine if a year
-  is a leap year, calculate the number of new moons
-  between the 11th month in one year (i.e., the month
-  containing the Winter Solstice) and the 11th month
-  in the following year.
-
-  If there are 13 new moons from the start of the 11th
-  month in the first year to the start of the 11th
-  month in the second year, a leap month must be inserted.
-
-  In leap years, at least one month does not contain a
-  Principal Term. The first such month is the leap month.
-
-  The additional complexity is that a leap year is
-  calculated for the solar year, but the calendar
-  is managed in lunar years and months. Therefore when
-  a leap year is detected, the leap month could be in
-  the current lunar year or the next lunar year.
-
-  ## Examples
-
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 37
-      true
-
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 38
-      false
-
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 39
-      false
-
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 40
-      true
-
-      iex> Cldr.Calendar.Chinese.leap_year? 78, 41
-      false
-
-  """
-  @spec leap_year?(cycle :: Lunisolar.cycle(), year :: Calendar.year()) :: boolean()
-
-  def leap_year?(cycle, cyclical_year) do
-    cycle
-    |> Lunisolar.elapsed_years(cyclical_year)
-    |> leap_year?()
-  end
-
-  @doc """
-  Returns if the given cycle, year and
-  months is a leap month.
-
-  """
-  @spec leap_month?(cycle :: Lunisolar.cycle(), cyclical_year :: Calendar.year(), Calendar.month()) :: boolean()
-  def leap_month?(cycle, cyclical_year, month) do
-    Lunisolar.leap_month?(cycle, cyclical_year, month, epoch(), &location/1)
-  end
-
-
-  def leap_month?(year, month) do
-    Lunisolar.leap_month?(year, month, epoch(), &location/1)
   end
 
   @doc false

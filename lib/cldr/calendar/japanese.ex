@@ -46,6 +46,49 @@ defmodule Cldr.Calendar.LunarJapanese do
   alias Astro.Time
   alias Cldr.Calendar.Lunisolar
 
+  @doc """
+  Returns a `t:Date.t/0` in the `#{__MODULE__}` calendar
+  formed by a calendar year, a *cardinal* lunar month number
+  and a cardinal day number.
+
+  The lunar month number is that used in traditional lunisolar
+  calendar notation. It is either a number between 1 and 12
+  (the number of months in an ordinary year) or a leap month
+  specified by the 2-tuple `{month, :leap}`.
+
+  This function is therefore most useful for creating tradition
+  calendar dates for holidays and other events defined in
+  the lunisolar calendar.
+
+  ### Arguments
+
+  * `year` is any year in the `#{inspect __MODULE__} calendar.
+
+  * `lunar_month` is either a cardinal month number between 1 and 12 or
+    for a leap month the 2-tuple in the format `{month, :leap}`.
+
+  * `day` is any day number valid for `year` and `month`
+
+  ### Returns
+
+  * `{:ok, date}` or
+
+  * `{:error, reason}`
+
+  ### Examples
+
+      # Lunar new year
+      iex> Cldr.Calendar.LunarJapanese.new(1379, 1, 1)
+      {:ok, ~D[1379-01-01 Cldr.Calendar.LunarJapanese]}
+
+      # First day of leap month
+      iex> Cldr.Calendar.LunarJapanese.new(1379, {3, :leap}, 1)
+      {:ok, ~D[1379-04-01 Cldr.Calendar.LunarJapanese]}
+
+  """
+  @spec new(year :: Calendar.year, month :: Lunisolar.lunar_month(), day :: Calendar.day) ::
+    {:ok, Date.t()} | {:error, atom()}
+
   def new(year, month, day) do
     case Lunisolar.new(year, month, day, epoch(), &location/1) do
       {:error, reason} ->
@@ -64,12 +107,8 @@ defmodule Cldr.Calendar.LunarJapanese do
     end
   end
 
-  def leap_year?(%Date{calendar: __MODULE__} = date) do
-    leap_year?(date.year)
-  end
-
   @doc """
-  Returns if the given year is a leap
+  Returns a boolean indicating if the given year is a leap
   year.
 
   Leap years have 13 months. To determine if a year
@@ -91,90 +130,139 @@ defmodule Cldr.Calendar.LunarJapanese do
   a leap year is detected, the leap month could be in
   the current lunar year or the next lunar year.
 
-  ## Examples
+  ### Arguments
 
-      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 37)
+  * `date_or_year` is either an integer year number
+    or a `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar.
+
+  ### Returns
+
+  * A booelan indicating if the given year is a leap
+    year.
+
+  ### Examples
+
+      iex> Cldr.Calendar.LunarJapanese.leap_year?(1379)
       true
 
-      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 38)
-      false
-
-      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 39)
-      false
-
-      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 40)
-      true
-
-      iex> Cldr.Calendar.Japanese.leap_year? Cldr.Calendar.Japanese.elapsed_years(78, 41)
+      iex> Cldr.Calendar.LunarJapanese.leap_year?(1378)
       false
 
   """
-  @spec leap_year?(Calendar.year()) :: boolean()
-  @impl true
+  @spec leap_year?(date_or_year :: Calendar.year() | Date.t()) :: boolean()
+  @impl Calendar
+
+  def leap_year?(%{year: year, calendar: __MODULE}) do
+    leap_year?(year)
+  end
 
   def leap_year?(year) do
     Lunisolar.leap_year?(year, epoch(), &location/1)
   end
 
   @doc """
-  Returns if the given cycle and year is a leap
-  year.
+  Returns a boolean indicating if the given year and month
+  is a leap month.
 
-  Leap years have 13 months. To determine if a year
-  is a leap year, calculate the number of new moons
-  between the 11th month in one year (i.e., the month
-  containing the Winter Solstice) and the 11th month
-  in the following year.
+  ### Arguements
 
-  If there are 13 new moons from the start of the 11th
-  month in the first year to the start of the 11th
-  month in the second year, a leap month must be inserted.
+  * `year` is any year in the `#{inspect __MODULE__}` calendar.
 
-  In leap years, at least one month does not contain a
-  Principal Term. The first such month is the leap month.
+  * `month` is any ordinal month number in the `#{inspect __MODULE__}`
+    calendar.
 
-  The additional complexity is that a leap year is
-  calculated for the solar year, but the calendar
-  is managed in lunar years and months. Therefore when
-  a leap year is detected, the leap month could be in
-  the current lunar year or the next lunar year.
+  ### Returns
 
-  ## Examples
+  * A booelan indicating if the given year and month is a leap
+    month.
 
-      iex> Cldr.Calendar.Japanese.leap_year? 78, 37
+  ### Examples
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month?(1379, 1)
+      false
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month?(1379, 3)
       true
-
-      iex> Cldr.Calendar.Japanese.leap_year? 78, 38
-      false
-
-      iex> Cldr.Calendar.Japanese.leap_year? 78, 39
-      false
-
-      iex> Cldr.Calendar.Japanese.leap_year? 78, 40
-      true
-
-      iex> Cldr.Calendar.Japanese.leap_year? 78, 41
-      false
 
   """
-  def leap_year?(cycle, year) do
-    cycle
-    |> Lunisolar.elapsed_years(year)
-    |> leap_year?()
-  end
-
+  @spec leap_month?(year :: Calendar.year(), month :: Calendar.month()) :: boolean()
   def leap_month?(year, month) do
     Lunisolar.leap_month?(year, month, epoch(), &location/1)
   end
 
-  def leap_month?(cycle, cyclical_year, month) do
-    Lunisolar.leap_month?(cycle, cyclical_year, month, epoch(), &location/1)
+  @doc """
+  Returns a boolean indicating if the given year and month
+  is a leap month.
+
+  ### Arguements
+
+  * `date` is any `t:Date.t/0` in the `#{inspect __MODULE__}` calendar.
+
+  ### Returns
+
+  * A booelan indicating if the given year and month is a leap
+    month.
+
+  ### Examples
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month?(~D[1379-01-01 Cldr.Calendar.LunarJapanese])
+      false
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month?(~D[1379-03-29 Cldr.Calendar.LunarJapanese])
+      true
+
+  """
+  @spec leap_month?(date :: Date.t()) :: boolean()
+  def leap_month?(%Date{calendar: __MODULE__} = date) do
+    leap_month?(date.year, date.month)
   end
 
+  @doc """
+  Returns the ordinal month number of the leap
+  month for a year, or nil if there is no leap
+  month.
+
+  ### Arguments
+
+  * `date_or_year` is either an integer year number
+    or a `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar.
+
+  ### Returns
+
+  * either an ordinal month number or
+
+  * `nil` indicating there is no leap month in the
+    given year.
+
+  ### Examples
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month(1379)
+      3
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month(~D[1379-13-29 Cldr.Calendar.LunarJapanese])
+      3
+
+      iex> Cldr.Calendar.LunarJapanese.leap_month(1380)
+      nil
+
+  """
+  @spec leap_month(date_or_year :: Date.t() | Calendar.year()) :: Calendar.month() | nil
+  def leap_month(%Date{year: year, calendar: __MODULE__}) do
+    leap_month(year)
+  end
+
+  def leap_month(year) do
+    Lunisolar.leap_month(year, epoch(), &location/1)
+  end
+
+  @doc false
   def cycle_and_year(iso_days) do
     Lunisolar.cycle_and_year(iso_days)
   end
 
+  @doc false
   def elapsed_years({cycle, cyclical_year}) do
     Lunisolar.elapsed_years(cycle, cyclical_year)
   end
@@ -183,6 +271,7 @@ defmodule Cldr.Calendar.LunarJapanese do
     Lunisolar.elapsed_years(cycle, cyclical_year)
   end
 
+  @doc false
   def date_to_iso_days({year, month, day}) do
     date_to_iso_days(year, month, day)
   end
@@ -191,10 +280,12 @@ defmodule Cldr.Calendar.LunarJapanese do
     Lunisolar.date_to_iso_days(year, month, day, epoch(), &location/1)
   end
 
+  @doc false
   def date_from_iso_days(iso_days) do
     Lunisolar.date_from_iso_days(iso_days, epoch(), &location/1)
   end
 
+  @doc false
   def cyclic_year(year, month, day) do
     Lunisolar.cyclic_year(year, month, day)
   end
@@ -205,14 +296,17 @@ defmodule Cldr.Calendar.LunarJapanese do
     year
   end
 
+  @doc false
   def month_of_year(year, month, day) do
     Lunisolar.month_of_year(year, month, day, epoch(), &location/1)
   end
 
+  @doc false
   def new_moon_on_or_after(iso_days) do
     Lunisolar.new_moon_on_or_after(iso_days, &location/1)
   end
 
+  @doc false
   def new_moon_before(iso_days) do
     Lunisolar.new_moon_before(iso_days, &location/1)
   end
@@ -228,6 +322,7 @@ defmodule Cldr.Calendar.LunarJapanese do
   @tokyo_local_offset Astro.Time.hours_to_days(9 + 143 / 450)
   @japan_standard_offset Astro.Time.hours_to_days(9)
 
+  @doc false
   @spec location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
   def location(iso_days) do
     {year, _month, _day} = Cldr.Calendar.Gregorian.date_from_iso_days(trunc(iso_days))

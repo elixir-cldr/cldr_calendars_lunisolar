@@ -33,6 +33,9 @@ defmodule Cldr.Calendar.Lunisolar do
 
   alias Astro.{Time, Solar, Lunar}
 
+  @typedoc "A lunar month"
+  @type lunar_month :: Calendar.month() | {Calendar.month(), :leap}
+
   @typedoc "A sexigesimal cycle number"
   @type cycle :: pos_integer()
 
