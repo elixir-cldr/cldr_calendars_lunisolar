@@ -35,6 +35,28 @@ defmodule Cldr.Calendar.Korean do
   alias Astro.Time
   alias Cldr.Calendar.Lunisolar
 
+  def new(year, month, day) do
+    case Lunisolar.new(year, month, day, epoch(), &location/1) do
+      {:error, reason} ->
+        {:error, reason}
+
+      iso_days ->
+        {year, month, day} = date_from_iso_days(iso_days)
+        Date.new(year, month, day, __MODULE__)
+    end
+  end
+
+  def new!(year, month, day) do
+    case new(year, month, day) do
+      {:ok, date} -> date
+      {:error, reason} -> raise ArgumentError, "cannot build date, reason: #{inspect(reason)}"
+    end
+  end
+
+  def leap_year?(%Date{calendar: __MODULE__} = date) do
+    leap_year?(date.year)
+  end
+
   @doc """
   Returns if the given year is a leap
   year.
@@ -77,10 +99,10 @@ defmodule Cldr.Calendar.Korean do
 
   """
   @spec leap_year?(Calendar.year()) :: boolean()
-  @impl true
+  @impl Calendar
 
   def leap_year?(year) do
-    Lunisolar.leap_year?(year, epoch(), &korean_location/1)
+    Lunisolar.leap_year?(year, epoch(), &location/1)
   end
 
   @doc """
@@ -130,57 +152,53 @@ defmodule Cldr.Calendar.Korean do
     |> leap_year?()
   end
 
-  def leap_month?(cycle, year, month) do
-    Lunisolar.leap_month?(cycle, year, month, epoch(), &korean_location/1)
+  def leap_month?(%Date{calendar: __MODULE__} = date) do
+    leap_month?(date.year, date.month)
   end
 
-  # @years_in_cycle 60
-  #
-  # def cycle_and_year(elapsed_years) do
-  #   cycle = floor((elapsed_years + 364) / @years_in_cycle)
-  #   year = amod(elapsed_years + 364, @years_in_cycle)
-  #
-  #   {cycle, year}
-  # end
-  #
-  # def elapsed_years(cycle, year) do
-  #   (@years_in_cycle * cycle) + year - 364
-  # end
+  def leap_month?(year, month) do
+    Lunisolar.leap_month?(year, month, epoch(), &location/1)
+  end
+
+  @doc false
+  def leap_month?(cycle, cyclic_year, month) do
+    Lunisolar.leap_month?(cycle, cyclic_year, month, epoch(), &location/1)
+  end
+
+  def leap_month(year) do
+    Lunisolar.leap_month(year, epoch(), &location/1)
+  end
 
   def date_to_iso_days({year, month, day}) do
     date_to_iso_days(year, month, day)
   end
 
   def date_to_iso_days(year, month, day) do
-    Lunisolar.date_to_iso_days(year, month, day, epoch(), &korean_location/1)
+    Lunisolar.date_to_iso_days(year, month, day, epoch(), &location/1)
   end
 
   def date_from_iso_days(iso_days) do
-    Lunisolar.date_from_iso_days(iso_days, epoch(), &korean_location/1)
+    Lunisolar.date_from_iso_days(iso_days, epoch(), &location/1)
   end
 
   def cyclic_year(year, month, day) do
     Lunisolar.cyclic_year(year, month, day)
   end
 
-  def related_gregorian_year(year, month, day) do
-    Lunisolar.related_gregorian_year(year, month, day, epoch(), &korean_location/1)
-  end
-
   def month_of_year(year, month, day) do
-    Lunisolar.month_of_year(year, month, day, epoch(), &korean_location/1)
+    Lunisolar.month_of_year(year, month, day, epoch(), &location/1)
   end
 
   def new_moon_on_or_after(iso_days) do
-    Lunisolar.new_moon_on_or_after(iso_days, &korean_location/1)
+    Lunisolar.new_moon_on_or_after(iso_days, &location/1)
   end
 
   # Since the Korean (dangi) calendar is a lunisolar
   # calendar, a reference longitude is required
   # in order to calculate sunset and sunrise.
 
-  @spec korean_location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
-  def korean_location(iso_days) do
+  @spec location(Time.time()) :: {Astro.angle(), Astro.angle(), Astro.meters, Time.hours()}
+  def location(iso_days) do
     offset = korean_offset(iso_days)
     {angle(37, 34, 0), angle(126, 58, 0), mt(0), Astro.Time.hours_to_days(offset)}
   end
