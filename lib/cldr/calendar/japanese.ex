@@ -62,7 +62,7 @@ defmodule Cldr.Calendar.LunarJapanese do
 
   ### Arguments
 
-  * `year` is any year in the `#{inspect __MODULE__} calendar.
+  * `year` is any year in the `#{inspect __MODULE__}` calendar.
 
   * `lunar_month` is either a cardinal month number between 1 and 12 or
     for a leap month the 2-tuple in the format `{month, :leap}`.

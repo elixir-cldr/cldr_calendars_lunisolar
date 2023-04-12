@@ -53,12 +53,12 @@ defmodule Cldr.Calendar.Chinese do
 
   ### Arguments
 
-  * `year` is any year in the `#{inspect __MODULE__} calendar.
+  * `year` is any year in the `#{inspect __MODULE__}` calendar.
 
   * `lunar_month` is either a cardinal month number between 1 and 12 or
     for a leap month the 2-tuple in the format `{month, :leap}`.
 
-  * `day` is any day number valid for `year` and `month`
+  * `day` is any day number valid for `year` and `month`.
 
   ### Returns
 

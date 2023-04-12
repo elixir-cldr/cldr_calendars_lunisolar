@@ -1,28 +1,29 @@
 defmodule Cldr.Calendar.Lunisolar do
-  @moduledoc false
+  @moduledoc """
+  Template for building lunisolar calendars.  See
+  `Cldr.Calendar.Chinese` for an example implementation.
 
-  # Template for building lunisolar calendars.  See
-  # `Cldr.Calendar.Chinese` for an example implementation.
-  #
-  # The functions in this module should only be called
-  # from lunisolar implementations.
-  #
-  # Some conventions are used for naming in this module:
-  #
-  # * `year` refers to the calendar year with is the number
-  #   of years since the epoch.
-  #
-  # * `cyclical_year` is the year in the sexigesimal cycle.
-  #
-  # * `month` is the ordinal month in the calendar year that
-  #   is between 1 and 12 for an ordinary year and between 1
-  #   and 13 in a leap year.
-  #
-  # * `lunar_month` is a the month numbered similarly to how months
-  #   are traditionally numbered. The month will be a cardinal
-  #   number between 1 and 12 in all years with the addition of
-  #   a leap month in leap years. The leap month is represented
-  #   by `{month, :keap}`.
+  The functions in this module should only be called
+  from lunisolar implementations.
+
+  Some conventions are used for naming in this module:
+
+  * `year` refers to the calendar year with is the number
+    of years since the epoch.
+
+  * `cyclical_year` is the year in the sexigesimal cycle.
+
+  * `month` is the ordinal month in the calendar year that
+    is between 1 and 12 for an ordinary year and between 1
+    and 13 in a leap year.
+
+  * `lunar_month` is a the month numbered similarly to how months
+    are traditionally numbered. The month will be a cardinal
+    number between 1 and 12 in all years with the addition of
+    a leap month in leap years. The leap month is represented
+    by `{month, :keap}`.
+
+  """
 
   import Astro.Math, only: [
     mod: 2,

@@ -10,6 +10,7 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      docs: docs(),
       source_url: "https://github.com/elixir-cldr/cldr_calendars_lunisolar",
       description: description(),
       package: package(),
@@ -81,6 +82,7 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   def docs do
     [
+      formatters: ["html"],
       source_ref: "v#{@version}",
       main: "readme",
       logo: "logo.png",
