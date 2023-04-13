@@ -129,7 +129,7 @@ defmodule Cldr.Calendar.Chinese do
 
   ### Returns
 
-  * A booelan indicating if the given year is a leap
+  * A boolaan indicating if the given year is a leap
     year.
 
   ### Examples
@@ -257,53 +257,6 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   @doc """
-  Returns the year in the lunisolar sexigesimal 60-year
-  cycle.
-
-  Traditionally years are numbered only within the cycle
-  however in this implementation the year is an offset from
-  the epoch date. It can be converted to the current year in
-  the current cycle with this function.
-
-  The cycle year is commonly shown on lunisolar calendars and
-  it forms part of the traditional Chinese zodiac.
-
-  ### Arguments
-
-  * `date` which is any `t:Date.t/0` in the `#{inspect __MODULE__}`
-    calendar, *or*
-
-  *`year` and `month` representing the calendar year and month.
-
-  ### Returns
-
-  * the integer year within the sexigesimal cycle of 60 years.
-
-  ### Examples
-
-      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4662-04-01 Cldr.Calendar.Chinese])
-      42
-
-      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4357-01-01 Cldr.Calendar.Chinese])
-      37
-
-      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4321-01-01 Cldr.Calendar.Chinese])
-      1
-
-      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4320-01-01 Cldr.Calendar.Chinese])
-      60
-
-  """
-  @spec cyclic_year(date :: Date.t()) :: Lunisolar.cycle()
-  def cyclic_year(%Date{year: year, month: month, calendar: __MODULE__}) do
-    cyclic_year(year, month)
-  end
-
-  def cyclic_year(year, month) do
-    Lunisolar.cyclic_year(year, month, 1)
-  end
-
-  @doc """
   Returns the lunar month of the year for a given date or
   year and month.
 
@@ -360,10 +313,42 @@ defmodule Cldr.Calendar.Chinese do
   end
 
   @doc """
-  Returns the gregorian date of the
-  Chinese New Year for a given gregorian year.
+  Returns the Gregorian date for the given gregorian year
+  and lunar month and day.
 
-  ## Example
+  ### Arguments
+
+  * `gregorian_year` is any year in the Gregorian calendar.
+
+  * `lunar_month` is either a cardinal month number between 1 and 12 or
+    for a leap month the 2-tuple in the format `{month, :leap}`.
+
+  * `day` is any day number valid for `year` and `lunar_month`.
+
+  ### Returns
+
+  * A gregorian date `t:Date.t()`.
+
+  """
+  def gregorian_date_for_lunar(gregorian_year, lunar_month, lunar_day) do
+   {year, month, day} = Lunisolar.gregorian_date_for_lunar(gregorian_year, lunar_month, lunar_day, epoch(), &location/1)
+   Date.new!(year, month, day)
+  end
+
+  @doc """
+  Returns the gregorian date of the
+  Luanr New Year for a given gregorian year.
+
+  ### Arguments
+
+  * `gregorian_year` is any year in the Gregorian calendar.
+
+  ### Returns
+
+  * a `t:Date.t/0` representing the Gregorian date of
+    the lunar year of the given Gregorian year.
+
+  ### Example
 
       iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2021)
       ~D[2021-02-12]
@@ -377,7 +362,54 @@ defmodule Cldr.Calendar.Chinese do
   """
   @spec new_year_for_gregorian_year(Calendar.year()) :: Date.t()
   def new_year_for_gregorian_year(gregorian_year) do
-    gregorian_date_for_chinese(gregorian_year, 1, 1)
+    gregorian_date_for_lunar(gregorian_year, 1, 1)
+  end
+
+  @doc """
+  Returns the year in the lunisolar sexigesimal 60-year
+  cycle.
+
+  Traditionally years are numbered only within the cycle
+  however in this implementation the year is an offset from
+  the epoch date. It can be converted to the current year in
+  the current cycle with this function.
+
+  The cycle year is commonly shown on lunisolar calendars and
+  it forms part of the traditional Chinese zodiac.
+
+  ### Arguments
+
+  * `date` which is any `t:Date.t/0` in the `#{inspect __MODULE__}`
+    calendar, *or*
+
+  *`year` and `month` representing the calendar year and month.
+
+  ### Returns
+
+  * the integer year within the sexigesimal cycle of 60 years.
+
+  ### Examples
+
+      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4662-04-01 Cldr.Calendar.Chinese])
+      42
+
+      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4357-01-01 Cldr.Calendar.Chinese])
+      37
+
+      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4321-01-01 Cldr.Calendar.Chinese])
+      1
+
+      iex> Cldr.Calendar.Chinese.cyclic_year(~D[4320-01-01 Cldr.Calendar.Chinese])
+      60
+
+  """
+  @spec cyclic_year(date :: Date.t()) :: Lunisolar.cycle()
+  def cyclic_year(%Date{year: year, month: month, calendar: __MODULE__}) do
+    cyclic_year(year, month)
+  end
+
+  def cyclic_year(year, month) do
+    Lunisolar.cyclic_year(year, month, 1)
   end
 
   @doc """
@@ -385,7 +417,16 @@ defmodule Cldr.Calendar.Chinese do
   dragon festival (5th day of 5th lunar month)
   for a given gregorian year.
 
-  ## Example
+  ### Arguments
+
+  * `year` is any year in the Gregorian calendar.
+
+  ### Returns
+
+  * The gregorian date of the dragon festival for
+    the given year.
+
+  ### Example
 
       iex> Cldr.Calendar.Chinese.dragon_festival_for_gregorian_year(2021)
       ~D[2021-06-14]
@@ -402,15 +443,7 @@ defmodule Cldr.Calendar.Chinese do
 
   @spec dragon_festival_for_gregorian_year(Calendar.year()) :: Date.t()
   def dragon_festival_for_gregorian_year(gregorian_year) when is_integer(gregorian_year) do
-    gregorian_date_for_chinese(gregorian_year, @dragon_month, @dragon_day)
-  end
-
-  defp gregorian_date_for_chinese(gregorian_year, chinese_month, chinese_day, leap_month? \\ false) do
-    mid_year = Calendar.ISO.date_to_iso_days(gregorian_year, 7, 1)
-    {cycle, chinese_year, _month, _day} = chinese_date_from_iso_days(mid_year)
-    iso_days = alt_chinese_date_to_iso_days(cycle, chinese_year, chinese_month, leap_month?, chinese_day)
-    {year, month, day} = Calendar.ISO.date_from_iso_days(iso_days)
-    Date.new!(year, month, day)
+    gregorian_date_for_lunar(gregorian_year, @dragon_month, @dragon_day)
   end
 
   @doc false
@@ -443,16 +476,6 @@ defmodule Cldr.Calendar.Chinese do
     Lunisolar.date_from_iso_days(iso_days, epoch(), &location/1)
   end
 
-  @doc false
-  def new_moon_on_or_after(iso_days) do
-    Lunisolar.new_moon_on_or_after(iso_days, &location/1)
-  end
-
-  @doc false
-  def new_moon_before(iso_days) do
-    Lunisolar.new_moon_before(iso_days, &location/1)
-  end
-
   # Since the Chinese calendar is a lunisolar
   # calendar, a reference longitude is required
   # in order to calculate sunset and sunrise.
@@ -478,28 +501,24 @@ defmodule Cldr.Calendar.Chinese do
 
   # The following are for testing purposes only
 
-  @doc false
+  # @doc false
   def chinese_date_from_iso_days(iso_days) do
     Lunisolar.cyclical_date_from_iso_days(iso_days, epoch(), &location/1)
   end
 
-  @doc false
+  # @doc false
   def alt_chinese_date_from_iso_days(iso_days) do
     Lunisolar.alt_cyclical_date_from_iso_days(iso_days, epoch(), &location/1)
   end
-
-  @doc false
-  def chinese_date_to_iso_days({cycle, year, month, day}) do
-    chinese_date_to_iso_days(cycle, year, month, day)
-  end
-
-  def chinese_date_to_iso_days(cycle, year, month, day) do
-    Lunisolar.cyclical_date_to_iso_days(cycle, year, month, day, epoch(), &location/1)
+  #
+  # @doc false
+  def chinese_date_to_iso_days({cycle, cyclic_year, lunar_month, lunar_day}) do
+    chinese_date_to_iso_days(cycle, cyclic_year, lunar_month, lunar_day)
   end
 
   @doc false
-  def alt_chinese_date_to_iso_days(cycle, year, month, leap_month?, day) do
-    Lunisolar.alt_cyclical_date_to_iso_days(cycle, year, month, leap_month?, day, epoch(), &location/1)
+  def chinese_date_to_iso_days(cycle, cyclic_year, lunar_month, lunar_day) do
+    Lunisolar.cyclical_date_to_iso_days(cycle, cyclic_year, lunar_month, lunar_day, epoch(), &location/1)
   end
 
 end

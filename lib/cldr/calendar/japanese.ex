@@ -258,6 +258,59 @@ defmodule Cldr.Calendar.LunarJapanese do
   end
 
   @doc """
+  Returns the Gregorian date for the given gregorian year
+  and lunar month and day.
+
+  ### Arguments
+
+  * `gregorian_year` is any year in the Gregorian calendar.
+
+  * `lunar_month` is either a cardinal month number between 1 and 12 or
+    for a leap month the 2-tuple in the format `{month, :leap}`.
+
+  * `day` is any day number valid for `year` and `lunar_month`.
+
+  ### Returns
+
+  * A gregorian date `t:Date.t()`.
+
+  """
+  def gregorian_date_for_lunar(gregorian_year, lunar_month, lunar_day) do
+   {year, month, day} = Lunisolar.gregorian_date_for_lunar(gregorian_year, lunar_month, lunar_day, epoch(), &location/1)
+   Date.new!(year, month, day)
+  end
+
+  @doc """
+  Returns the gregorian date of the
+  Luanr New Year for a given gregorian year.
+
+  ### Arguments
+
+  * `gregorian_year` is any year in the Gregorian calendar.
+
+  ### Returns
+
+  * a `t:Date.t/0` representing the Gregorian date of
+    the lunar year of the given Gregorian year.
+
+  ### Example
+
+      iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2021)
+      ~D[2021-02-12]
+
+      iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2022)
+      ~D[2022-02-01]
+
+      iex> Cldr.Calendar.Chinese.new_year_for_gregorian_year(2023)
+      ~D[2023-01-22]
+
+  """
+  @spec new_year_for_gregorian_year(Calendar.year()) :: Date.t()
+  def new_year_for_gregorian_year(gregorian_year) do
+    gregorian_date_for_lunar(gregorian_year, 1, 1)
+  end
+
+  @doc """
   Returns the year in the lunisolar sexigesimal 60-year
   cycle.
 

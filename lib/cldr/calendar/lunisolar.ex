@@ -102,6 +102,18 @@ defmodule Cldr.Calendar.Lunisolar do
     end
   end
 
+  @doc """
+  Returns the Gregorian date for the lunar month and day in a
+  given Gregorian year.
+
+  """
+  def gregorian_date_for_lunar(gregorian_year, lunar_month, lunar_day, epoch, location_fun) do
+    mid_year = Calendar.ISO.date_to_iso_days(gregorian_year, 7, 1)
+    {cycle, cyclic_year, _month, _day} = cyclical_date_from_iso_days(mid_year, epoch, location_fun)
+    iso_days = alt_cyclical_date_to_iso_days(cycle, cyclic_year, lunar_month, lunar_day, epoch, location_fun)
+    Calendar.ISO.date_from_iso_days(iso_days)
+  end
+
   @doc false
   def cyclic_year(year, _month, _day) do
     {_cycle, year} =  cycle_and_year(year)
@@ -397,21 +409,31 @@ defmodule Cldr.Calendar.Lunisolar do
   end
 
   @doc false
-  def alt_cyclical_date_to_iso_days(cycle, cyclical_year, month, leap_month?, day, epoch, location_fun) do
+  def alt_cyclical_date_to_iso_days(cycle, cyclical_year, lunar_month, lunar_day, epoch, location_fun)
+      when is_integer(lunar_month) do
+    alt_cyclical_date_to_iso_days(cycle, cyclical_year, lunar_month, false, lunar_day, epoch, location_fun)
+  end
+
+  def alt_cyclical_date_to_iso_days(cycle, cyclical_year, {lunar_month, :leap}, lunar_day, epoch, location_fun)
+      when is_integer(lunar_month) do
+    alt_cyclical_date_to_iso_days(cycle, cyclical_year, lunar_month, true, lunar_day, epoch, location_fun)
+  end
+
+  defp alt_cyclical_date_to_iso_days(cycle, cyclical_year, lunar_month, leap_month?, lunar_day, epoch, location_fun) do
     mid_year = mid_year(cycle, cyclical_year, epoch)
     new_year = new_year_on_or_before(mid_year, location_fun)
 
-    p = new_moon_on_or_after(new_year + (month - 1) * 29, location_fun)
+    p = new_moon_on_or_after(new_year + (lunar_month - 1) * 29, location_fun)
     d = alt_cyclical_date_from_iso_days(p, epoch, location_fun)
 
     prior_new_moon =
-      if month == month(d) && leap_month? == leap_month?(d) do
+      if lunar_month == month(d) && leap_month? == leap_month?(d) do
         p
       else
         new_moon_on_or_after(1 + p, location_fun)
       end
 
-    prior_new_moon + day - 1
+    prior_new_moon + lunar_day - 1
   end
 
   @doc false
