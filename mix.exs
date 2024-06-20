@@ -56,14 +56,14 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
       {:ex_cldr_calendars, "~> 1.24"},
       {:ex_cldr_dates_times, "~> 2.10", optional: true, only: [:dev, :test]},
 
-      {:astro, "~> 0.9 or ~> 1.0"},
+      {:astro, "~> 1.0"},
       {:tz_world, "~> 1.1"},
       {:tz, "~> 0.26", optional: true},
       {:tzdata, "~> 1.1", optional: true},
 
       {:stream_data, "~> 1.1", only: :test, optional: true},
       {:ex_doc, "~> 0.19", only: [:release, :dev], runtime: false, optional: true},
-      {:earmark, "1.4", optional: true, runtime: false},
+      {:earmark, "~> 1.4", optional: true, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
