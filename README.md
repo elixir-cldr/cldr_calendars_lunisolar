@@ -4,11 +4,42 @@ This library implements the Chinese, Japanese and Korean lunisolar calendars. Lu
 
 The traditional Chinese, Japanese and Korean calendars all use the same astronomical principles with the only difference being the reference point from which the observations are made and the preferred epoch date. Today, the Chinese calendar uses Beijing as the reference, the Japanese calendar uses Tokyo and the Korean calendar uses Seoul.
 
+## Installation
+
+The minimum supported Elixir version is 1.12.
+
+The package can be installed by adding `ex_cldr_calendars_lunisolar` and `tz_world` to the list of dependencies in `mix.exs`.  Additionally, add either `tzdata` or `tz` as a time zone database.
+
+```elixir
+def deps do
+  [
+    {:ex_cldr_calendars_lunisolar, "~> 1.0"},
+
+    # Provides time zone lookup for astro
+    # the is a transitive dependency that converts locations
+    # time zones.
+    {:tz_world, "~> 1.3"},
+
+    # Choose tz or tzdata as time zone databases.
+    {:tz, "~> 0.26"}
+  ]
+end
+```
+Documentation can be found at [https://hexdocs.pm/ex_cldr_calendars_lunisolar](https://hexdocs.pm/ex_cldr_calendars_lunisolar).
+
+### Install the time zone geo data
+
+In order to map a location to a time zone, the dependency `tz_world` needs a time zone geography data set to be donwloaded. This is done once with the following `mix` task:
+
+```elixir
+mix tz_world.update
+```
+
 ## Usage
 
 [ex_cldr_calendars_lunisolar](https://hex.pm/packages/ex_cldr_calenars_lunisolar) conforms to both the `Calendar` and `Cldr.Calendar` behaviours and therefore the functions in the `Date`, `DateTime`, `NaiveDateTime`, `Time` and `Calendar` functions are supported.
 
-For Elixir version 1.10 and later `Sigil_D` supports user-defined calendars:
+For Elixir version 1.12 and later `Sigil_D` supports user-defined calendars:
 ```elixir
 iex> ~D[4660-03-30 Cldr.Calendar.Chinese]
 ~D[4660-03-30 Cldr.Calendar.Chinese]
@@ -89,16 +120,4 @@ This library is part of the [CLDR](https://cldr.unicode.org)-based libraries for
 * [ex_cldr_calendars](https://hex.pm/packages/ex_cldr_calendars)
 * [ex_cldr_currencies](https://hex.pm/packages/ex_cldr_currencies)
 
-## Installation
-
-The package can be installed by adding `ex_cldr_calendars_lunisolar` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:ex_cldr_calendars_lunisolar, "~> 1.0"}
-  ]
-end
-```
-Documentation can be found at [https://hexdocs.pm/ex_cldr_calendars_lunisolar](https://hexdocs.pm/ex_cldr_calendars_lunisolar).
 

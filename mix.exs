@@ -1,13 +1,13 @@
 defmodule Cldr.Calendars.Lunisolar.MixProject do
   use Mix.Project
 
-  @version "1.0.0"
+  @version "1.1.0"
 
   def project do
     [
       app: :ex_cldr_calendars_lunisolar,
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
@@ -53,13 +53,17 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   defp deps do
     [
-      {:ex_cldr_calendars, "~> 1.22"},
+      {:ex_cldr_calendars, "~> 1.24"},
       {:ex_cldr_dates_times, "~> 2.10", optional: true, only: [:dev, :test]},
 
       {:astro, "~> 0.9 or ~> 1.0"},
-      {:stream_data, "~> 0.4", only: :test, optional: true},
+      {:tz_world, "~> 1.1"},
+      {:tz, "~> 0.26", optional: true},
+      {:tzdata, "~> 1.1", optional: true},
+
+      {:stream_data, "~> 1.1", only: :test, optional: true},
       {:ex_doc, "~> 0.19", only: [:release, :dev], runtime: false, optional: true},
-      {:earmark, "1.4.14", optional: true, runtime: false},
+      {:earmark, "1.4", optional: true, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
