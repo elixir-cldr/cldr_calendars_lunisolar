@@ -1,7 +1,7 @@
 defmodule Cldr.Calendars.Lunisolar.MixProject do
   use Mix.Project
 
-  @version "1.1.0"
+  @version "1.2.0"
 
   def project do
     [
@@ -53,7 +53,7 @@ defmodule Cldr.Calendars.Lunisolar.MixProject do
 
   defp deps do
     [
-      {:ex_cldr_calendars, "~> 1.24"},
+      {:ex_cldr_calendars, "~> 2.1"},
       {:ex_cldr_dates_times, "~> 2.10", optional: true, only: [:dev, :test]},
 
       {:astro, "~> 1.0"},

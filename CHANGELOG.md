@@ -1,5 +1,13 @@
 # Changelog
 
+## Cldr_Calendars_Lunisolar v1.2.0
+
+This is the changelog for ex_cldr_calendars_lunisolar v1.2.0 released on March 19th, 2025.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_calendars_lunisolar/tags)
+
+### Enhancements
+
+* Use `ex_cldr_calendars` version 2.x
+
 ## Cldr_Calendars_Lunisolar v1.1.0
 
 This is the changelog for ex_cldr_calendars_lunisolar v1.1.0 released on June 21st, 2024.  For older changelogs please consult the release tag on [GitHub](https://github.com/elixir-cldr/cldr_calendars_lunisolar/tags)
